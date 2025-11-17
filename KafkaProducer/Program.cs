@@ -1,29 +1,37 @@
-using Confluent.Kafka;
-using static Common.Constants;
+using KafkaProducer.Models;
+using KafkaProducer.Services;
+using KafkaProducer.Services.SchemaManagement;
+using Microsoft.AspNetCore.Mvc;
+using Common;
+using Confluent.SchemaRegistry;
 
-var config = new ProducerConfig
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddHttpClient();
+
+builder.Services.Configure<KafkaConfiguration>(
+    builder.Configuration.GetRequiredSection(KafkaConfiguration.SectionName));
+
+builder.Services.AddSingleton<ISchemaRegistryClient>(sp =>
 {
-    BootstrapServers = Configuration.KafkaConnectUri,
-};
-
-using var producer = new ProducerBuilder<Null, string>(config).Build();
-
-Console.WriteLine("Type something to write a message:");
-try
-{
-    string? value;
-    while ((value = Console.ReadLine()) != null)
+    var kafkaConfig = builder.Configuration
+        .GetRequiredSection(KafkaConfiguration.SectionName)
+        .Get<KafkaConfiguration>();
+    
+    var schemaRegistryConfig = new SchemaRegistryConfig
     {
+        Url = kafkaConfig?.SchemaRegistryUrl ?? throw new InvalidOperationException("Schema Registry URL is not configured")
+    };
+    
+    return new CachedSchemaRegistryClient(schemaRegistryConfig);
+});
 
-        _ = await producer.ProduceAsync(Topics.Weather, new Message<Null, string>()
-        {
-            Value = value
-        });
-    }
+builder.Services.AddHostedService<SchemaInitializer>();
 
-}
-catch (ProduceException<Null, string> ex)
-{
-    Console.WriteLine($"Exception producing message {ex.Message}");
-	throw;
-}
+builder.Services.AddSingleton<IOrderProducer, OrderProducer>();
+
+var app = builder.Build();
+
+app.MapPost("/orders", async ([FromBody] Order order, IOrderProducer producer) => await producer.CreateOrder(order));
+
+app.Run();
