@@ -1,0 +1,13 @@
+@KafkaProvider_HostAddress = http://localhost:5295
+
+POST {{KafkaProvider_HostAddress}}/orders/
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "name": "test",
+      "count": 1
+    }
+  ]
+}
