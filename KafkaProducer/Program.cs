@@ -1,5 +1,5 @@
 using KafkaProducer.Models;
-using KafkaProducer.Services;
+using KafkaProducer.Services.OrderProducer;
 using KafkaProducer.Services.SchemaManagement;
 using Microsoft.AspNetCore.Mvc;
 using Common;
