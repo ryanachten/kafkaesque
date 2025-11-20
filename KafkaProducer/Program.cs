@@ -1,9 +1,9 @@
-using KafkaProducer.Models;
 using KafkaProducer.Services.OrderProducer;
 using KafkaProducer.Services.SchemaManagement;
 using Microsoft.AspNetCore.Mvc;
 using Common;
 using Confluent.SchemaRegistry;
+using Common.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
