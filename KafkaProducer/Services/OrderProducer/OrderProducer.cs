@@ -1,52 +1,49 @@
 ﻿using Confluent.Kafka;
 using Confluent.SchemaRegistry;
 using Confluent.SchemaRegistry.Serdes;
-using KafkaProducer.Models;
 using static Common.Constants;
 using Common;
 using Microsoft.Extensions.Options;
+using Common.Models;
 
 namespace KafkaProducer.Services.OrderProducer;
 
-public class OrderProducer : IOrderProducer
+public sealed class OrderProducer : IOrderProducer, IDisposable
 {
-    private readonly KafkaConfiguration _kafkaConfig;
+    private readonly IProducer<Null, Order> _producer;
 
     public OrderProducer(IOptions<KafkaConfiguration> kafkaConfig)
     {
-        _kafkaConfig = kafkaConfig.Value;
-    }
-
-    public async Task CreateOrder(Order order)
-    {
         var producerConfig = new ProducerConfig()
         {
-            BootstrapServers = _kafkaConfig.BootstrapServers,
+            BootstrapServers = kafkaConfig.Value.BootstrapServers,
         };
 
         var schemaRegistryConfig = new SchemaRegistryConfig()
         {
-            Url = _kafkaConfig.SchemaRegistryUrl
+            Url = kafkaConfig.Value.SchemaRegistryUrl
         };
 
-        using var schemaRegistryClient = new CachedSchemaRegistryClient(schemaRegistryConfig);
-        
+        var schemaRegistryClient = new CachedSchemaRegistryClient(schemaRegistryConfig);
+
         // Note: AutoRegisterSchemas is disabled to avoid auto-generation issues.
-        // The schema must be manually registered in the Schema Registry first.
-        // See: Scripts/register-schemas.ps1 for schema registration
+        // The schema must be registered in the Schema Registry first.
         var jsonSerializerConfig = new JsonSerializerConfig
         {
             AutoRegisterSchemas = false,
             UseLatestVersion = true
         };
-        
-        using var producer = new ProducerBuilder<Null, Order>(producerConfig)
+
+        _producer = new ProducerBuilder<Null, Order>(producerConfig)
             .SetValueSerializer(new JsonSerializer<Order>(schemaRegistryClient, jsonSerializerConfig))
             .Build();
+    }
 
+    public async Task CreateOrder(Order order)
+    {
         try
         {
-            await producer.ProduceAsync(Topics.Orders, new Message<Null, Order>()
+            await _producer.ProduceAsync(Topics.Orders, new Message<Null, Order>()
             {
                 Value = order
             });
@@ -56,5 +53,10 @@ public class OrderProducer : IOrderProducer
             Console.WriteLine($"Failed to produce order: {ex.Error.Reason}");
             throw;
         }
+    }
+
+    public void Dispose()
+    {
+        _producer.Dispose();
     }
 }
