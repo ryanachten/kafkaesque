@@ -21,8 +21,7 @@
 
 - To rebuild only producer: `docker-compose up -d --build kafkaproducer`
 - To rebuild only consumer: `docker-compose up -d --build kafkaconsumer`
-- To run producer locally: `dotnet run --project KafkaProducer/KafkaProducer.csproj`
-- To run consumer locally: `dotnet run --project KafkaConsumer/KafkaConsumer.csproj`
+- To rebuild only schema manager: `docker-compose -f docker-compose.kafka.yml -f docker-compose.yml up -d --build schemamanager`
 
 ## Schema Management
 

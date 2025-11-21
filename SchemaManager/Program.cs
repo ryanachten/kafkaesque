@@ -31,6 +31,10 @@ var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>()
 try
 {
     logger.LogInformation("=== Schema Manager Started ===");
+
+    // Wait for Schema Registry to be ready
+    await WaitForSchemaRegistry(configuration, logger, httpClientFactory);
+
     await RegisterAllSchemas(configuration, logger, httpClientFactory);
     logger.LogInformation("=== Schema Manager Completed Successfully ===");
     Environment.Exit(0);
@@ -39,6 +43,41 @@ catch (Exception ex)
 {
     logger.LogError(ex, "Failed to register schemas");
     Environment.Exit(1);
+}
+
+static async Task WaitForSchemaRegistry(IConfiguration configuration, ILogger logger, IHttpClientFactory httpClientFactory)
+{
+    var kafkaConfig = configuration.GetSection(KafkaConfiguration.SectionName).Get<KafkaConfiguration>();
+    var schemaRegistryUrl = kafkaConfig?.SchemaRegistryUrl ?? throw new InvalidOperationException("Schema Registry URL is not configured");
+
+    var httpClient = httpClientFactory.CreateClient();
+    var maxRetries = 30;
+    var retryDelay = TimeSpan.FromSeconds(2);
+
+    logger.LogInformation("Waiting for Schema Registry at {Url} to be ready...", schemaRegistryUrl);
+
+    for (int i = 1; i <= maxRetries; i++)
+    {
+        try
+        {
+            var response = await httpClient.GetAsync($"{schemaRegistryUrl}/subjects");
+            if (response.IsSuccessStatusCode)
+            {
+                logger.LogInformation("✓ Schema Registry is ready");
+                return;
+            }
+        }
+        catch (HttpRequestException)
+        {
+            // Expected while service is starting up
+        }
+
+        logger.LogInformation("Schema Registry not ready yet (attempt {Attempt}/{MaxRetries}), waiting {Delay} seconds...",
+            i, maxRetries, retryDelay.TotalSeconds);
+        await Task.Delay(retryDelay);
+    }
+
+    throw new InvalidOperationException($"Schema Registry at {schemaRegistryUrl} did not become ready after {maxRetries} attempts");
 }
 
 static async Task RegisterAllSchemas(IConfiguration configuration, ILogger logger, IHttpClientFactory httpClientFactory)
