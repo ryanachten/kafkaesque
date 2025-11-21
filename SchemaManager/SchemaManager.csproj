@@ -26,4 +26,9 @@
     <None Include=".\Schemas\*.json" CopyToOutputDirectory="PreserveNewest" LinkBase="Schemas" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="appsettings.Development.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
