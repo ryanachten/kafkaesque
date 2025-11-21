@@ -12,16 +12,17 @@ public sealed class OrderProducer : IOrderProducer, IDisposable
 {
     private readonly IProducer<Null, Order> _producer;
 
-    public OrderProducer(IOptions<KafkaConfiguration> kafkaConfig)
+    public OrderProducer(IOptions<KafkaConfiguration> kafkaOptions)
     {
+        var kafkaConfig = kafkaOptions.Value;
         var producerConfig = new ProducerConfig()
         {
-            BootstrapServers = kafkaConfig.Value.BootstrapServers,
+            BootstrapServers = kafkaConfig.BootstrapServers,
         };
 
         var schemaRegistryConfig = new SchemaRegistryConfig()
         {
-            Url = kafkaConfig.Value.SchemaRegistryUrl
+            Url = kafkaConfig.SchemaRegistryUrl
         };
 
         var schemaRegistryClient = new CachedSchemaRegistryClient(schemaRegistryConfig);
