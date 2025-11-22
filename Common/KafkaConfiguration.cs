@@ -4,6 +4,6 @@ public class KafkaConfiguration
 {
     public const string SectionName = "Kafka";
 
-    public string BootstrapServers { get; set; } = string.Empty;
-    public string SchemaRegistryUrl { get; set; } = string.Empty;
+    public required string BootstrapServers { get; set; }
+    public required string SchemaRegistryUrl { get; set; }
 }
