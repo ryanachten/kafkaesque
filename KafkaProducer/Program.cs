@@ -31,4 +31,4 @@ var app = builder.Build();
 
 app.MapPost("/orders", async ([FromBody] Order order, IOrderProducer producer) => await producer.CreateOrder(order));
 
-app.Run();
+await app.RunAsync();

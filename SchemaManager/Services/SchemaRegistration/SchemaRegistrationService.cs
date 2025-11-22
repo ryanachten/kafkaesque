@@ -40,7 +40,7 @@ public class SchemaRegistrationService(
                 var response = await httpClient.GetAsync($"{schemaRegistryUrl}/subjects", cancellationToken);
                 if (response.IsSuccessStatusCode)
                 {
-                    _logger.LogInformation("✓ Schema Registry is ready");
+                    _logger.LogInformation("Schema Registry is ready");
                     return;
                 }
             }

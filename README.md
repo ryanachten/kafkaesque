@@ -2,25 +2,18 @@
 
 ## Getting Started
 
-1. **Start the Kafka infrastructure:**
-   ```powershell
-   docker-compose up -d
+**Start the Kafka infrastructure:**
+   ```bash
+   docker compose up -d
    ```
 
-2. **Run the producer:**
-   ```powershell
-   dotnet run --project KafkaProducer/KafkaProducer.csproj
-   ```
-   
-   Schemas are automatically registered on application startup from the `Schemas/` folder.
-
-3. **Access the Confluent Control Center:**
+**Access the Confluent Control Center:**
    Open http://localhost:9021 to view the Confluent Kafka control center
 
 ## Development
 
-- To rebuild only producer: `docker-compose up -d --build kafkaproducer`
-- To rebuild only consumer: `docker-compose up -d --build kafkaconsumer`
+- To rebuild only producer: `docker-compose  -f docker-compose.kafka.yml -f docker-compose.yml up -d --build kafkaproducer`
+- To rebuild only consumer: `docker-compose  -f docker-compose.kafka.yml -f docker-compose.yml up -d --build kafkaconsumer`
 - To rebuild only schema manager: `docker-compose -f docker-compose.kafka.yml -f docker-compose.yml up -d --build schemamanager`
 
 ## Schema Management
