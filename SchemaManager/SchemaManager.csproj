@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include=".\Schemas\*.json" CopyToOutputDirectory="PreserveNewest" LinkBase="Schemas" />
+    <None Include=".\Schemas\*.avsc" CopyToOutputDirectory="PreserveNewest" LinkBase="Schemas" />
   </ItemGroup>
 
   <ItemGroup>

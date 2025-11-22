@@ -1,0 +1,29 @@
+{
+  "type": "record",
+  "name": "Order",
+  "namespace": "Common.Models",
+  "fields": [
+    {
+      "name": "items",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "OrderItem",
+          "namespace": "Common.Models",
+          "fields": [
+            {
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "name": "count",
+              "type": "int"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
+

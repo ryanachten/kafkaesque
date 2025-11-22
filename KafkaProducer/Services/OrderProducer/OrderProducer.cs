@@ -29,14 +29,14 @@ public sealed class OrderProducer : IOrderProducer, IDisposable
 
         // Note: AutoRegisterSchemas is disabled to avoid auto-generation issues.
         // The schema must be registered in the Schema Registry first.
-        var jsonSerializerConfig = new JsonSerializerConfig
+        var avroSerializerConfig = new AvroSerializerConfig
         {
             AutoRegisterSchemas = false,
             UseLatestVersion = true
         };
 
         _producer = new ProducerBuilder<Null, Order>(producerConfig)
-            .SetValueSerializer(new JsonSerializer<Order>(schemaRegistryClient, jsonSerializerConfig))
+            .SetValueSerializer(new AvroSerializer<Order>(schemaRegistryClient, avroSerializerConfig))
             .Build();
     }
 

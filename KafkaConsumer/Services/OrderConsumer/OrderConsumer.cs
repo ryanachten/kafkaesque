@@ -37,14 +37,13 @@ public sealed class OrderConsumer : BackgroundService
         var schemaRegistryClient = new CachedSchemaRegistryClient(schemaRegistryConfig);
 
         _consumer = new ConsumerBuilder<Null, Order>(consumerConfig)
-            // TODO: this sync over async approach sucks, also lets look at Avro serialization instead of JSON 
-            .SetValueDeserializer(new JsonDeserializer<Order>(schemaRegistryClient).AsSyncOverAsync())
+            .SetValueDeserializer(new AvroDeserializer<Order>(schemaRegistryClient).AsSyncOverAsync())
             .Build();
 
         _consumer.Subscribe(Topics.Orders);
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
         Console.WriteLine("Messages will appear below:");
 
@@ -71,6 +70,8 @@ public sealed class OrderConsumer : BackgroundService
         {
             _consumer.Close();
         }
+
+        return Task.CompletedTask;
     }
 
     public override void Dispose()

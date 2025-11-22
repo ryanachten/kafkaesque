@@ -67,7 +67,7 @@ public class SchemaRegistrationService(
             return;
         }
 
-        var schemaFiles = Directory.GetFiles(schemasPath, "*.json");
+        var schemaFiles = Directory.GetFiles(schemasPath, "*.avsc");
 
         if (schemaFiles.Length == 0)
         {
@@ -90,13 +90,13 @@ public class SchemaRegistrationService(
     {
         var fileName = Path.GetFileNameWithoutExtension(schemaFilePath);
 
-        // Convention: "orders.json" → topic "orders", subject "orders-value"
+        // Convention: "orders.avsc" → topic "orders", subject "orders-value"
         var subjectName = $"{fileName}-value";
 
-        _logger.LogInformation("Registering schema: {FileName}.json → Subject: {Subject}",
+        _logger.LogInformation("Registering schema: {FileName}.avsc → Subject: {Subject}",
             fileName, subjectName);
 
-        var schemaJson = await File.ReadAllTextAsync(schemaFilePath, cancellationToken);
+        var schemaContent = await File.ReadAllTextAsync(schemaFilePath, cancellationToken);
 
         // Use REST API directly to avoid C# client adding metadata
         var kafkaConfig = _configuration.GetSection(KafkaConfiguration.SectionName).Get<KafkaConfiguration>();
@@ -104,8 +104,8 @@ public class SchemaRegistrationService(
 
         var requestBody = new
         {
-            schema = schemaJson,
-            schemaType = "JSON"
+            schema = schemaContent,
+            schemaType = "AVRO"
         };
 
         var httpClient = _httpClientFactory.CreateClient();
