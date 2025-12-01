@@ -4,6 +4,20 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AvroGeneratedCodeOutputPath>$(MSBuildProjectDirectory)\Generated</AvroGeneratedCodeOutputPath>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Tools\**" />
+    <None Include="Tools\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Apache.Avro" Version="1.11.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <_GeneratedAvroFiles Include="$(AvroGeneratedCodeOutputPath)\**\*.cs" />
+    <Compile Include="@(_GeneratedAvroFiles)" />
+  </ItemGroup>
 
 </Project>
