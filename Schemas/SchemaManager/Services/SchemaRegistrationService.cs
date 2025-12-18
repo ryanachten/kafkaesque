@@ -6,7 +6,7 @@ using SchemaManager.Options;
 using System.Text;
 using System.Text.Json;
 
-namespace SchemaManager.Services.SchemaRegistration;
+namespace SchemaManager.SchemaRegistration;
 
 public class SchemaRegistrationService(
     IConfiguration configuration,
@@ -14,7 +14,7 @@ public class SchemaRegistrationService(
     ILogger<SchemaRegistrationService> logger,
     IHttpClientFactory httpClientFactory) : ISchemaRegistrationService
 {
-    private const string SchemasPath = "Schemas";
+    private const string SchemasPath = "Avro";
     private readonly IConfiguration _configuration = configuration;
     private readonly SchemaRegistrationOptions _options = options.Value;
     private readonly ILogger<SchemaRegistrationService> _logger = logger;

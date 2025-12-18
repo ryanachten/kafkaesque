@@ -1,7 +1,7 @@
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
 
-namespace SchemaManager.Services.SchemaGeneration;
+namespace SchemaGenerator.Services;
 
 /// <summary>
 /// Formats generated Avro code to convert property names to PascalCase.
@@ -54,7 +54,7 @@ public static class CodeFormatter
             }
         }
 
-        // Pattern 3: Property references: "this.propertyName" or "this._fieldName"
+        // Pattern 3: Property references: "this.PropertyName" or "this._FieldName"
         var thisRefPattern = new Regex(
             @"\bthis\.(_?)([a-z][a-zA-Z0-9_]*)",
             RegexOptions.Multiline);
@@ -89,4 +89,3 @@ public static class CodeFormatter
         return char.ToUpperInvariant(input[0]) + input.Substring(1);
     }
 }
-

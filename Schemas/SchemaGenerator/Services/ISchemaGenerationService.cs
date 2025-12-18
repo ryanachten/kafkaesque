@@ -1,7 +1,6 @@
-namespace SchemaManager.Services.SchemaGeneration;
+namespace SchemaGenerator.Services;
 
 public interface ISchemaGenerationService
 {
     Task GenerateCodeFromSchemas(CancellationToken cancellationToken = default);
 }
-

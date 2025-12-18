@@ -19,11 +19,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Common\Common.csproj" />
+    <ProjectReference Include="..\..\Common\Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include=".\Schemas\*.avsc" CopyToOutputDirectory="PreserveNewest" LinkBase="Schemas" />
+    <None Include="..\Avro\*.avsc" CopyToOutputDirectory="PreserveNewest" LinkBase="Schemas" />
   </ItemGroup>
 
   <ItemGroup>

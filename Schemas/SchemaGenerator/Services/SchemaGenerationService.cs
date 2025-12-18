@@ -1,13 +1,13 @@
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Text;
 
-namespace SchemaManager.Services.SchemaGeneration;
+namespace SchemaGenerator.Services;
 
 public class SchemaGenerationService : ISchemaGenerationService
 {
-    private const string SchemasPath = "Schemas";
+    private const string SchemasPath = "../Avro";
     private readonly IConfiguration _configuration;
     private readonly ILogger<SchemaGenerationService> _logger;
     private readonly string _outputPath;
@@ -19,9 +19,9 @@ public class SchemaGenerationService : ISchemaGenerationService
         _configuration = configuration;
         _logger = logger;
 
-        // Output to Common/Generated/ directory
+        // Output to Schemas/Generated/ directory (parent project)
         var solutionDir = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), ".."));
-        _outputPath = Path.Combine(solutionDir, "Common", "Generated");
+        _outputPath = Path.Combine(solutionDir, "Generated");
     }
 
     public async Task GenerateCodeFromSchemas(CancellationToken cancellationToken = default)
@@ -152,4 +152,3 @@ public class SchemaGenerationService : ISchemaGenerationService
         }
     }
 }
-

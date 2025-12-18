@@ -3,7 +3,7 @@ services:
     container_name: schemamanager
     build:
       context: .
-      dockerfile: SchemaManager/Dockerfile
+      dockerfile: Schemas/SchemaManager/Dockerfile
     environment:
       - DOTNET_ENVIRONMENT=Development
       - Kafka__BootstrapServers=broker:29092

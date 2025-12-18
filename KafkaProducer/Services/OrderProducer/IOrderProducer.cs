@@ -1,4 +1,4 @@
-﻿using Common.Models;
+﻿using Schemas;
 
 namespace KafkaProducer.Services.OrderProducer;
 
