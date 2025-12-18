@@ -4,7 +4,7 @@ using Confluent.SchemaRegistry.Serdes;
 using static Common.Constants;
 using Common;
 using Microsoft.Extensions.Options;
-using Common.Models;
+using Schemas;
 
 namespace KafkaProducer.Services.OrderProducer;
 

@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "Order",
-  "namespace": "Common.Models",
+  "namespace": "Schemas",
   "fields": [
     {
       "name": "items",
@@ -10,7 +10,7 @@
         "items": {
           "type": "record",
           "name": "OrderItem",
-          "namespace": "Common.Models",
+          "namespace": "Schemas",
           "fields": [
             {
               "name": "name",
@@ -26,4 +26,3 @@
     }
   ]
 }
-
