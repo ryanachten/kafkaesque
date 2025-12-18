@@ -2,11 +2,11 @@ using Common;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using SchemaManager.Options;
+using SchemaRegister.Options;
 using System.Text;
 using System.Text.Json;
 
-namespace SchemaManager.SchemaRegistration;
+namespace SchemaRegister.SchemaRegistration;
 
 public class SchemaRegistrationService(
     IConfiguration configuration,

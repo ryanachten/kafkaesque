@@ -8,15 +8,12 @@ namespace SchemaGenerator.Services;
 public class SchemaGenerationService : ISchemaGenerationService
 {
     private const string SchemasPath = "../Avro";
-    private readonly IConfiguration _configuration;
     private readonly ILogger<SchemaGenerationService> _logger;
     private readonly string _outputPath;
 
     public SchemaGenerationService(
-        IConfiguration configuration,
         ILogger<SchemaGenerationService> logger)
     {
-        _configuration = configuration;
         _logger = logger;
 
         // Output to Schemas/Generated/ directory (parent project)

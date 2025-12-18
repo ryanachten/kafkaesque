@@ -13,7 +13,7 @@ Avro schema definitions and code generation for Kafka messages.
    Generated classes will be in `Generated/` directory
 3. **Register schemas** with Schema Registry:
    ```bash
-   docker-compose -f docker-compose.kafka.yml -f docker-compose.yml up -d --build schemamanager
+ docker-compose -f docker-compose.kafka.yml -f docker-compose.yml up -d --build schema-register
    ```
 
 ## Schema Format

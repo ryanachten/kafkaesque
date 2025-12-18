@@ -14,7 +14,7 @@
 
 - To rebuild only producer: `docker-compose  -f docker-compose.kafka.yml -f docker-compose.yml up -d --build kafkaproducer`
 - To rebuild only consumer: `docker-compose  -f docker-compose.kafka.yml -f docker-compose.yml up -d --build kafkaconsumer`
-- To rebuild only schema manager: `docker-compose -f docker-compose.kafka.yml -f docker-compose.yml up -d --build schemamanager`
+- To rebuild only schema register: `docker-compose -f docker-compose.kafka.yml -f docker-compose.yml up -d --build schema-register`
 
 ## Schema Management
 

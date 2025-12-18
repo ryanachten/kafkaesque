@@ -1,4 +1,4 @@
-namespace SchemaManager.Options;
+namespace SchemaRegister.Options;
 
 public class SchemaRegistrationOptions
 {

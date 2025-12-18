@@ -1,4 +1,4 @@
-namespace SchemaManager.SchemaRegistration;
+namespace SchemaRegister.SchemaRegistration;
 
 public interface ISchemaRegistrationService
 {

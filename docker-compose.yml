@@ -1,9 +1,9 @@
 services:
-  schemamanager:
-    container_name: schemamanager
+  schema-register:
+    container_name: schema-register
     build:
       context: .
-      dockerfile: Schemas/SchemaManager/Dockerfile
+      dockerfile: Schemas/SchemaRegister/Dockerfile
     environment:
       - DOTNET_ENVIRONMENT=Development
       - Kafka__BootstrapServers=broker:29092
@@ -30,7 +30,7 @@ services:
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
     depends_on:
-      schemamanager:
+      schema-register:
         condition: service_completed_successfully
 
   kafkaproducer:
@@ -49,5 +49,5 @@ services:
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
     depends_on:
-      schemamanager:
+      schema-register:
         condition: service_completed_successfully

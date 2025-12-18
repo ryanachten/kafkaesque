@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using SchemaManager.Options;
-using SchemaManager.SchemaRegistration;
+using SchemaRegister.Options;
+using SchemaRegister.SchemaRegistration;
 
 var configuration = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
