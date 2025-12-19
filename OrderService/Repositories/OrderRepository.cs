@@ -6,26 +6,44 @@ namespace OrderService.Repositories;
 
 public class OrderRepository(IDbConnectionFactory connectionFactory, ILogger<OrderRepository> logger) : IOrderRepository
 {
-    public async Task<Order> CreateAsync(Order order)
+    public async Task<Order> Create(Order order)
     {
-        // TODO: Implement SQL query to insert order into database
-        // Example:
-        // const string sql = @"
-        //     INSERT INTO orders (order_id, customer_name, product, quantity, price, timestamp)
-        //     VALUES (@OrderId, @CustomerName, @Product, @Quantity, @Price, @Timestamp)
-        //     RETURNING *";
+        const string insertOrderSql = @"
+            INSERT INTO orders (order_id, created_at, updated_at)
+            VALUES (gen_random_uuid(), NOW(), NOW())
+            RETURNING order_id";
 
-        logger.LogInformation("Creating order in database");
+        const string insertOrderItemSql = @"
+            INSERT INTO order_items (order_id, name, count)
+            VALUES (@OrderId, @Name, @Count)";
 
-        // using var connection = await _connectionFactory.CreateConnectionAsync();
-        // var result = await connection.QuerySingleAsync<Order>(sql, order);
-        // return result;
+        using var connection = await connectionFactory.CreateConnection();
+        using var transaction = connection.BeginTransaction();
 
-        await Task.CompletedTask; // Remove warning
-        throw new NotImplementedException("CreateAsync not yet implemented - awaiting schema definition");
+        try
+        {
+            var orderId = await connection.QuerySingleAsync<Guid>(insertOrderSql, transaction: transaction);
+
+            foreach (var item in order.Items)
+            {
+                await connection.ExecuteAsync(
+                    insertOrderItemSql,
+                    new { OrderId = orderId, item.Name, item.Count },
+                    transaction: transaction);
+            }
+
+            transaction.Commit();
+
+            return order;
+        }
+        catch
+        {
+            transaction.Rollback();
+            throw;
+        }
     }
 
-    public async Task<Order?> GetByIdAsync(string orderId)
+    public async Task<Order?> GetById(string orderId)
     {
         // TODO: Implement SQL query to get order by ID
         // Example:
@@ -41,7 +59,7 @@ public class OrderRepository(IDbConnectionFactory connectionFactory, ILogger<Ord
         throw new NotImplementedException("GetByIdAsync not yet implemented - awaiting schema definition");
     }
 
-    public async Task<IEnumerable<Order>> GetAllAsync()
+    public async Task<IEnumerable<Order>> GetAll()
     {
         // TODO: Implement SQL query to get all orders
         // Example:
@@ -57,7 +75,7 @@ public class OrderRepository(IDbConnectionFactory connectionFactory, ILogger<Ord
         throw new NotImplementedException("GetAllAsync not yet implemented - awaiting schema definition");
     }
 
-    public async Task<bool> UpdateAsync(Order order)
+    public async Task<bool> Update(Order order)
     {
         // TODO: Implement SQL query to update order
         // Example:
@@ -79,7 +97,7 @@ public class OrderRepository(IDbConnectionFactory connectionFactory, ILogger<Ord
         throw new NotImplementedException("UpdateAsync not yet implemented - awaiting schema definition");
     }
 
-    public async Task<bool> DeleteAsync(string orderId)
+    public async Task<bool> Delete(string orderId)
     {
         // TODO: Implement SQL query to delete order
         // Example:
