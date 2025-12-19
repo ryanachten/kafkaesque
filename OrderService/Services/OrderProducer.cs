@@ -6,7 +6,7 @@ using Common;
 using Microsoft.Extensions.Options;
 using Schemas;
 
-namespace OrderProducer.Services;
+namespace OrderService.Services;
 
 public sealed class OrderProducer : IOrderProducer, IDisposable
 {

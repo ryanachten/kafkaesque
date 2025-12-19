@@ -1,6 +1,6 @@
-@OrderProvider_HostAddress = http://localhost:5295
+@OrderService_HostAddress = http://localhost:5295
 
-POST {{OrderProvider_HostAddress}}/orders/
+POST {{OrderService_HostAddress}}/orders/
 Content-Type: application/json
 
 {

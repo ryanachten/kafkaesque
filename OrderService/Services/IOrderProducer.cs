@@ -1,6 +1,6 @@
 ﻿using Schemas;
 
-namespace OrderProducer.Services;
+namespace OrderService.Services;
 
 public interface IOrderProducer
 {
