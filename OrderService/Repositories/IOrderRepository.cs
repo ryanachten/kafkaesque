@@ -4,13 +4,13 @@ namespace OrderService.Repositories;
 
 public interface IOrderRepository
 {
-    Task<Order> CreateAsync(Order order);
+    Task<Order> Create(Order order);
 
-    Task<Order?> GetByIdAsync(string orderId);
+    Task<Order?> GetById(string orderId);
 
-    Task<IEnumerable<Order>> GetAllAsync();
+    Task<IEnumerable<Order>> GetAll();
 
-    Task<bool> UpdateAsync(Order order);
+    Task<bool> Update(Order order);
 
-    Task<bool> DeleteAsync(string orderId);
+    Task<bool> Delete(string orderId);
 }

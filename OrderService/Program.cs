@@ -31,6 +31,7 @@ builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
 builder.Services.AddSingleton<IOrderProducer, OrderProducer>();
+builder.Services.AddScoped<IOrderService, OrderService.Services.OrderService>();
 
 var app = builder.Build();
 
@@ -39,6 +40,6 @@ var connectionString = builder.Configuration.GetConnectionString("OrdersDatabase
 
 DatabaseMigrator.MigrateDatabase(connectionString, app.Logger);
 
-app.MapPost("/orders", async ([FromBody] Order order, IOrderProducer producer) => await producer.CreateOrder(order));
+app.MapPost("/orders", async ([FromBody] Order order, IOrderService service) => await service.CreateOrder(order));
 
 await app.RunAsync();
