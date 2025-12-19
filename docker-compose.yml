@@ -13,11 +13,11 @@ services:
         condition: service_started
     restart: "no"
 
-  kafkaconsumer:
-    container_name: kafkaconsumer
+  order-consumer:
+    container_name: order-consumer
     build:
       context: .
-      dockerfile: KafkaConsumer/Dockerfile
+      dockerfile: OrderConsumer/Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080

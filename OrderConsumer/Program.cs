@@ -1,12 +1,12 @@
 using Common;
-using KafkaConsumer.Services.OrderConsumer;
+using OrderConsumerService = OrderConsumer.Services.OrderConsumer;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<KafkaConfiguration>(
     builder.Configuration.GetRequiredSection(KafkaConfiguration.SectionName));
 
-builder.Services.AddHostedService<OrderConsumer>();
+builder.Services.AddHostedService<OrderConsumerService>();
 
 var app = builder.Build();
 

@@ -7,7 +7,7 @@ using Confluent.SchemaRegistry.Serdes;
 using Microsoft.Extensions.Options;
 using static Common.Constants;
 
-namespace KafkaConsumer.Services.OrderConsumer;
+namespace OrderConsumer.Services;
 
 public sealed class OrderConsumer : BackgroundService
 {

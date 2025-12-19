@@ -22,7 +22,7 @@
       "sourceFileMap": {
         "/src": "${workspaceFolder}"
       },
-      "containerName": "kafkaconsumer"
+      "containerName": "order-consumer"
     }
   ]
 }
