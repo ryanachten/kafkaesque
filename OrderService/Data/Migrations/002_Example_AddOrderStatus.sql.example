@@ -1,0 +1,12 @@
+-- Example of a future migration
+-- This file demonstrates the migration naming and structure
+-- Delete this file when you create your first real migration
+
+-- Add a status column to track order state
+ALTER TABLE orders ADD COLUMN status VARCHAR(50) NOT NULL DEFAULT 'pending';
+
+-- Add an index for filtering by status
+CREATE INDEX idx_orders_status ON orders(status);
+
+-- Add a comment
+COMMENT ON COLUMN orders.status IS 'Current status of the order: pending, processing, completed, cancelled';
