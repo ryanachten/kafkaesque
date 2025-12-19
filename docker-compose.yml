@@ -33,11 +33,11 @@ services:
       schema-register:
         condition: service_completed_successfully
 
-  order-producer:
-    container_name: order-producer
+  order-service:
+    container_name: order-service
     build:
       context: .
-      dockerfile: OrderProducer/Dockerfile
+      dockerfile: OrderService/Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
