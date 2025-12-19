@@ -12,7 +12,7 @@
       "sourceFileMap": {
         "/src": "${workspaceFolder}"
       },
-      "containerName": "kafkaproducer"
+      "containerName": "order-producer"
     },
     {
       "name": "Docker: Attach to Consumer",

@@ -1,6 +1,6 @@
-@KafkaProvider_HostAddress = http://localhost:5295
+@OrderProvider_HostAddress = http://localhost:5295
 
-POST {{KafkaProvider_HostAddress}}/orders/
+POST {{OrderProvider_HostAddress}}/orders/
 Content-Type: application/json
 
 {

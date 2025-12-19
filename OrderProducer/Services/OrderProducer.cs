@@ -6,7 +6,7 @@ using Common;
 using Microsoft.Extensions.Options;
 using Schemas;
 
-namespace KafkaProducer.Services.OrderProducer;
+namespace OrderProducer.Services;
 
 public sealed class OrderProducer : IOrderProducer, IDisposable
 {

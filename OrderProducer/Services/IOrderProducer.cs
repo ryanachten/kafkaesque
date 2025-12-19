@@ -1,6 +1,6 @@
 ﻿using Schemas;
 
-namespace KafkaProducer.Services.OrderProducer;
+namespace OrderProducer.Services;
 
 public interface IOrderProducer
 {

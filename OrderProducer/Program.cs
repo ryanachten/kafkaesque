@@ -1,8 +1,9 @@
-using KafkaProducer.Services.OrderProducer;
 using Microsoft.AspNetCore.Mvc;
 using Common;
 using Confluent.SchemaRegistry;
 using Schemas;
+using IOrderProducerService = OrderProducer.Services.IOrderProducer;
+using OrderProducerService = OrderProducer.Services.OrderProducer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,10 +26,10 @@ builder.Services.AddSingleton<ISchemaRegistryClient>(sp =>
     return new CachedSchemaRegistryClient(schemaRegistryConfig);
 });
 
-builder.Services.AddSingleton<IOrderProducer, OrderProducer>();
+builder.Services.AddSingleton<IOrderProducerService, OrderProducerService>();
 
 var app = builder.Build();
 
-app.MapPost("/orders", async ([FromBody] Order order, IOrderProducer producer) => await producer.CreateOrder(order));
+app.MapPost("/orders", async ([FromBody] Order order, IOrderProducerService producer) => await producer.CreateOrder(order));
 
 await app.RunAsync();

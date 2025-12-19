@@ -33,11 +33,11 @@ services:
       schema-register:
         condition: service_completed_successfully
 
-  kafkaproducer:
-    container_name: kafkaproducer
+  order-producer:
+    container_name: order-producer
     build:
       context: .
-      dockerfile: KafkaProducer/Dockerfile
+      dockerfile: OrderProducer/Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
