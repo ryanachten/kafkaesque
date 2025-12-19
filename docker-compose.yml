@@ -1,4 +1,21 @@
 services:
+  postgres:
+    container_name: postgres
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=orders
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   schema-register:
     container_name: schema-register
     build:
@@ -44,10 +61,16 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - Kafka__BootstrapServers=broker:29092
       - Kafka__SchemaRegistryUrl=http://schema-registry:8081
+      - ConnectionStrings__OrdersDatabase=Host=postgres;Port=5432;Database=orders;Username=postgres;Password=postgres
     ports:
       - "5295:8080"
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
     depends_on:
+      postgres:
+        condition: service_healthy
       schema-register:
         condition: service_completed_successfully
+
+volumes:
+  postgres-data:
