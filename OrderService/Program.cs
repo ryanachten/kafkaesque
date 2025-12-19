@@ -3,6 +3,8 @@ using Common;
 using Confluent.SchemaRegistry;
 using Schemas;
 using OrderService.Services;
+using OrderService.Data;
+using OrderService.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +26,9 @@ builder.Services.AddSingleton<ISchemaRegistryClient>(sp =>
 
     return new CachedSchemaRegistryClient(schemaRegistryConfig);
 });
+
+builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
 builder.Services.AddSingleton<IOrderProducer, IOrderProducer>();
 
