@@ -10,9 +10,14 @@
     <PackageReference Include="Confluent.Kafka" Version="2.5.3" />
     <PackageReference Include="Confluent.SchemaRegistry.Serdes.Avro" Version="2.5.3" />
     <PackageReference Include="Dapper" Version="2.1.35" />
+    <PackageReference Include="dbup-postgresql" Version="5.0.40" />
     <PackageReference Include="librdkafka.redist" Version="2.12.1" />
     <PackageReference Include="Npgsql" Version="8.0.5" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Data\Migrations\*.sql" />
   </ItemGroup>
 
   <ItemGroup>

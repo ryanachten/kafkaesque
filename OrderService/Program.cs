@@ -30,9 +30,14 @@ builder.Services.AddSingleton<ISchemaRegistryClient>(sp =>
 builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
-builder.Services.AddSingleton<IOrderProducer, IOrderProducer>();
+builder.Services.AddSingleton<IOrderProducer, OrderProducer>();
 
 var app = builder.Build();
+
+var connectionString = builder.Configuration.GetConnectionString("OrdersDatabase")
+    ?? throw new InvalidOperationException("OrdersDatabase connection string is not configured");
+
+DatabaseMigrator.MigrateDatabase(connectionString, app.Logger);
 
 app.MapPost("/orders", async ([FromBody] Order order, IOrderProducer producer) => await producer.CreateOrder(order));
 
