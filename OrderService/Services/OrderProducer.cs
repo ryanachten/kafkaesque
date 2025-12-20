@@ -10,7 +10,7 @@ namespace OrderService.Services;
 
 public sealed class OrderProducer : IOrderProducer, IDisposable
 {
-    private readonly IProducer<Null, Order> _producer;
+    private readonly IProducer<Null, OrderPlaced> _producer;
 
     public OrderProducer(IOptions<KafkaConfiguration> kafkaOptions)
     {
@@ -35,21 +35,21 @@ public sealed class OrderProducer : IOrderProducer, IDisposable
             UseLatestVersion = true
         };
 
-        _producer = new ProducerBuilder<Null, Order>(producerConfig)
-            .SetValueSerializer(new AvroSerializer<Order>(schemaRegistryClient, avroSerializerConfig))
+        _producer = new ProducerBuilder<Null, OrderPlaced>(producerConfig)
+            .SetValueSerializer(new AvroSerializer<OrderPlaced>(schemaRegistryClient, avroSerializerConfig))
             .Build();
     }
 
-    public async Task CreateOrder(Order order)
+    public async Task ProduceOrderPlacedEvent(OrderPlaced order)
     {
         try
         {
-            await _producer.ProduceAsync(Topics.Orders, new Message<Null, Order>()
+            await _producer.ProduceAsync(Topics.Orders, new Message<Null, OrderPlaced>()
             {
                 Value = order
             });
         }
-        catch (ProduceException<Null, Order> ex)
+        catch (ProduceException<Null, OrderPlaced> ex)
         {
             Console.WriteLine($"Failed to produce order: {ex.Error.Reason}");
             throw;

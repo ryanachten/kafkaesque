@@ -11,7 +11,7 @@ namespace OrderConsumer.Services;
 
 public sealed class OrderConsumer : BackgroundService
 {
-    private readonly IConsumer<Null, Order> _consumer;
+    private readonly IConsumer<Null, OrderPlaced> _consumer;
 
     public OrderConsumer(IOptions<KafkaConfiguration> kafkaOptions)
     {
@@ -36,8 +36,8 @@ public sealed class OrderConsumer : BackgroundService
 
         var schemaRegistryClient = new CachedSchemaRegistryClient(schemaRegistryConfig);
 
-        _consumer = new ConsumerBuilder<Null, Order>(consumerConfig)
-            .SetValueDeserializer(new AvroDeserializer<Order>(schemaRegistryClient).AsSyncOverAsync())
+        _consumer = new ConsumerBuilder<Null, OrderPlaced>(consumerConfig)
+            .SetValueDeserializer(new AvroDeserializer<OrderPlaced>(schemaRegistryClient).AsSyncOverAsync())
             .Build();
 
         _consumer.Subscribe(Topics.Orders);

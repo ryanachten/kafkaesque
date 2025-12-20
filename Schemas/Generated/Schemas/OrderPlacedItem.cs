@@ -14,17 +14,17 @@ namespace Schemas
 	using global::Avro.Specific;
 	
 	[global::System.CodeDom.Compiler.GeneratedCodeAttribute("avrogen", "1.12.1+9110c693767c1dde2665b2b57939333478b12036")]
-	public partial class OrderItem : global::Avro.Specific.ISpecificRecord
+	public partial class OrderPlacedItem : global::Avro.Specific.ISpecificRecord
 	{
-		public static global::Avro.Schema _SCHEMA = global::Avro.Schema.Parse("{\"type\":\"record\",\"name\":\"OrderItem\",\"namespace\":\"Schemas\",\"fields\":[{\"name\":\"name" +
-				"\",\"type\":\"string\"},{\"name\":\"count\",\"type\":\"int\"}]}");
+		public static global::Avro.Schema _SCHEMA = global::Avro.Schema.Parse("{\"type\":\"record\",\"name\":\"OrderPlacedItem\",\"namespace\":\"Schemas\",\"fields\":[{\"name\"" +
+				":\"name\",\"type\":\"string\"},{\"name\":\"count\",\"type\":\"int\"}]}");
 		private string _Name;
 		private int _Count;
 		public virtual global::Avro.Schema Schema
 		{
 			get
 			{
-				return OrderItem._SCHEMA;
+				return OrderPlacedItem._SCHEMA;
 			}
 		}
 		public string Name
