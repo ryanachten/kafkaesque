@@ -14,21 +14,18 @@ namespace Schemas
 	using global::Avro.Specific;
 	
 	[global::System.CodeDom.Compiler.GeneratedCodeAttribute("avrogen", "1.12.1+9110c693767c1dde2665b2b57939333478b12036")]
-	public partial class Order : global::Avro.Specific.ISpecificRecord
+	public partial class OrderPlaced : global::Avro.Specific.ISpecificRecord
 	{
-		public static global::Avro.Schema _SCHEMA = global::Avro.Schema.Parse("{\"type\":\"record\",\"name\":\"Order\",\"namespace\":\"Schemas\",\"fields\":[{\"name\":\"items\",\"" +
-				"type\":{\"type\":\"array\",\"items\":{\"type\":\"record\",\"name\":\"OrderItem\",\"namespace\":\"S" +
-				"chemas\",\"fields\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"count\",\"type\":\"int\"}]" +
-				"}}}]}");
-		private IList<Schemas.OrderItem> _Items;
+		public static global::Avro.Schema _SCHEMA = global::Avro.Schema.Parse(@"{""type"":""record"",""name"":""OrderPlaced"",""namespace"":""Schemas"",""fields"":[{""name"":""items"",""type"":{""type"":""array"",""items"":{""type"":""record"",""name"":""OrderPlacedItem"",""namespace"":""Schemas"",""fields"":[{""name"":""name"",""type"":""string""},{""name"":""count"",""type"":""int""}]}}}]}");
+		private IList<Schemas.OrderPlacedItem> _Items;
 		public virtual global::Avro.Schema Schema
 		{
 			get
 			{
-				return Order._SCHEMA;
+				return OrderPlaced._SCHEMA;
 			}
 		}
-		public IList<Schemas.OrderItem> Items
+		public IList<Schemas.OrderPlacedItem> Items
 		{
 			get
 			{
@@ -51,7 +48,7 @@ namespace Schemas
 		{
 			switch (fieldPos)
 			{
-			case 0: this.Items = (IList<Schemas.OrderItem>)fieldValue; break;
+			case 0: this.Items = (IList<Schemas.OrderPlacedItem>)fieldValue; break;
 			default: throw new global::Avro.AvroRuntimeException("Bad index " + fieldPos + " in Put()");
 			};
 		}

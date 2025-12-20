@@ -5,6 +5,7 @@ using Schemas;
 using OrderService.Services;
 using OrderService.Data;
 using OrderService.Repositories;
+using OrderService.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 

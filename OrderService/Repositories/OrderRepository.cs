@@ -1,5 +1,6 @@
 using Dapper;
 using OrderService.Data;
+using OrderService.Models;
 using Schemas;
 
 namespace OrderService.Repositories;

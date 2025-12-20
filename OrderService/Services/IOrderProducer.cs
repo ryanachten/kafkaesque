@@ -4,5 +4,5 @@ namespace OrderService.Services;
 
 public interface IOrderProducer
 {
-    Task CreateOrder(Order order);
+    Task ProduceOrderPlacedEvent(OrderPlaced order);
 }

@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "Order",
+  "name": "OrderPlaced",
   "namespace": "Schemas",
   "fields": [
     {
@@ -9,7 +9,7 @@
         "type": "array",
         "items": {
           "type": "record",
-          "name": "OrderItem",
+          "name": "OrderPlacedItem",
           "namespace": "Schemas",
           "fields": [
             {

@@ -1,3 +1,4 @@
+using OrderService.Models;
 using Schemas;
 
 namespace OrderService.Services;
