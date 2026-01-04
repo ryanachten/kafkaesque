@@ -1,13 +1,19 @@
 using Microsoft.AspNetCore.Mvc;
 using Common;
 using Confluent.SchemaRegistry;
-using Schemas;
 using OrderService.Services;
 using OrderService.Data;
 using OrderService.Repositories;
 using OrderService.Models;
+using OrderService.Models.DTOs;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
 builder.Services.AddHttpClient();
 
@@ -41,6 +47,6 @@ var connectionString = builder.Configuration.GetConnectionString("OrdersDatabase
 
 DatabaseMigrator.MigrateDatabase(connectionString, app.Logger);
 
-app.MapPost("/orders", async ([FromBody] Order order, IOrderService service) => await service.CreateOrder(order));
+app.MapPost("/orders", async ([FromBody] CreateOrderRequest order, IOrderService service) => await service.CreateOrder(new Order(order)));
 
 await app.RunAsync();

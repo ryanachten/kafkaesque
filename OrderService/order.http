@@ -4,9 +4,10 @@ POST {{OrderService_HostAddress}}/orders/
 Content-Type: application/json
 
 {
+  "customerId": "529f0699-0367-43a8-93e3-b792b2eb2dd8",
   "items": [
     {
-      "name": "test",
+      "productId": "03eea945-aa44-4155-bed1-68e9e420efad",
       "count": 1
     }
   ]
