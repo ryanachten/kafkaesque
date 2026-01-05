@@ -7,6 +7,7 @@ using OrderService.Repositories;
 using OrderService.Models;
 using OrderService.Models.DTOs;
 using System.Text.Json.Serialization;
+using OrderService.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,9 @@ builder.Services.AddHttpClient();
 
 builder.Services.Configure<KafkaConfiguration>(
     builder.Configuration.GetRequiredSection(KafkaConfiguration.SectionName));
+
+builder.Services.Configure<OutboxOptions>(
+    builder.Configuration.GetRequiredSection(OutboxOptions.SectionName));
 
 builder.Services.AddSingleton<ISchemaRegistryClient>(sp =>
 {
@@ -36,9 +40,11 @@ builder.Services.AddSingleton<ISchemaRegistryClient>(sp =>
 
 builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IOutboxRepository, OutboxRepository>();
 
 builder.Services.AddSingleton<IOrderProducer, OrderProducer>();
 builder.Services.AddScoped<IOrderService, OrderService.Services.OrderService>();
+builder.Services.AddHostedService<OrderOutboxWorker>();
 
 var app = builder.Build();
 
