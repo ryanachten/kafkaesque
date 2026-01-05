@@ -4,6 +4,14 @@
   "namespace": "Schemas",
   "fields": [
     {
+      "name": "orderShortCode",
+      "type": "string"
+    },
+    {
+      "name": "customerId",
+      "type": "string"
+    },
+    {
       "name": "items",
       "type": {
         "type": "array",
@@ -13,7 +21,7 @@
           "namespace": "Schemas",
           "fields": [
             {
-              "name": "name",
+              "name": "productId",
               "type": "string"
             },
             {
