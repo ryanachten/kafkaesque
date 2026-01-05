@@ -4,7 +4,7 @@ Avro schema definitions and code generation for Kafka messages.
 
 ## Adding or Updating Schemas
 
-1. **Create/modify schema** in `Avro/` directory (e.g., `orders.avsc`)
+1. **Create/modify schema** in `Avro/` directory (e.g., `orders.placed.avsc`)
 2. **Generate C# classes** from schemas:
    ```bash
    cd SchemaGenerator

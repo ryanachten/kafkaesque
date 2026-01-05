@@ -74,5 +74,6 @@ public sealed class OrderOutboxWorker(IServiceProvider serviceProvider, IOptions
 
         // TODO: handle publishing failure by marking event as failed in DB
         // TODO: handle publishing success by marking event as published in DB
+        // TODO: consider clean up worker for removing published events
     }
 }

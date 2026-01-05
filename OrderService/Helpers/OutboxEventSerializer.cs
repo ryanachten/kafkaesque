@@ -4,6 +4,7 @@ using Schemas;
 
 namespace OrderService.Helpers;
 
+// TODO: this logic might be better encapsulated as a OrderPlacedOutboxEvent class
 public static class OutboxEventSerializer
 {
     public static OutboxEvent FromOrder(Order order)
@@ -29,11 +30,11 @@ public static class OutboxEventSerializer
 
         return new OrderPlaced()
         {
-            // CustomerId = order.CustomerId, // TODO: need to update the event schema to support this stuff
+            OrderShortCode = order.OrderShortCode,
+            CustomerId = order.CustomerId.ToString(),
             Items = [.. order.Items.Select(i => new OrderPlacedItem()
             {
-                // ProductId = i.ProductId,  // TODO: need to update the event schema to support this stuff
-                Name = "REMOVE ME",
+                ProductId = i.ProductId.ToString(),
                 Count = i.Count,
             })]
         };

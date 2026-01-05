@@ -17,8 +17,8 @@ namespace Schemas
 	public partial class OrderPlacedItem : global::Avro.Specific.ISpecificRecord
 	{
 		public static global::Avro.Schema _SCHEMA = global::Avro.Schema.Parse("{\"type\":\"record\",\"name\":\"OrderPlacedItem\",\"namespace\":\"Schemas\",\"fields\":[{\"name\"" +
-				":\"name\",\"type\":\"string\"},{\"name\":\"count\",\"type\":\"int\"}]}");
-		private string _Name;
+				":\"productId\",\"type\":\"string\"},{\"name\":\"count\",\"type\":\"int\"}]}");
+		private string _ProductId;
 		private int _Count;
 		public virtual global::Avro.Schema Schema
 		{
@@ -27,15 +27,15 @@ namespace Schemas
 				return OrderPlacedItem._SCHEMA;
 			}
 		}
-		public string Name
+		public string ProductId
 		{
 			get
 			{
-				return this._Name;
+				return this._ProductId;
 			}
 			set
 			{
-				this._Name = value;
+				this._ProductId = value;
 			}
 		}
 		public int Count
@@ -53,7 +53,7 @@ namespace Schemas
 		{
 			switch (fieldPos)
 			{
-			case 0: return this.Name;
+			case 0: return this.ProductId;
 			case 1: return this.Count;
 			default: throw new global::Avro.AvroRuntimeException("Bad index " + fieldPos + " in Get()");
 			};
@@ -62,7 +62,7 @@ namespace Schemas
 		{
 			switch (fieldPos)
 			{
-			case 0: this.Name = (System.String)fieldValue; break;
+			case 0: this.ProductId = (System.String)fieldValue; break;
 			case 1: this.Count = (System.Int32)fieldValue; break;
 			default: throw new global::Avro.AvroRuntimeException("Bad index " + fieldPos + " in Put()");
 			};
