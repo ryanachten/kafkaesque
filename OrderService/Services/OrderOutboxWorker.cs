@@ -9,29 +9,46 @@ namespace OrderService.Services;
 
 public sealed class OrderOutboxWorker(IServiceProvider serviceProvider, IOptions<OutboxOptions> outboxOptions) : IHostedService, IDisposable
 {
-    private Timer? _timer;
+    private PeriodicTimer? _timer;
+    private Task? _executingTask;
+    private CancellationTokenSource? _tokenSource;
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        // TODO: decide if periodic timer or timer is more appropriate here
-        _timer = new Timer(async _ =>
-        {
-            await PublishEvents();
-        }, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(outboxOptions.Value.PollingIntervalMilliseconds));
+        _timer = new PeriodicTimer(TimeSpan.FromMilliseconds(outboxOptions.Value.PollingIntervalMilliseconds));
+        _tokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        _executingTask = ExecuteAsync(_tokenSource.Token);
 
         return Task.CompletedTask;
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
-        _timer?.Change(Timeout.Infinite, 0);
+        if (_tokenSource is not null) await _tokenSource.CancelAsync();
 
-        return Task.CompletedTask;
+        if (_executingTask is not null) await _executingTask;
     }
 
     public void Dispose()
     {
+        _tokenSource?.Dispose();
         _timer?.Dispose();
+    }
+
+    private async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        try
+        {
+            await PublishEvents();
+
+            while (await _timer!.WaitForNextTickAsync(stoppingToken))
+            {
+                await PublishEvents();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
     }
 
     private async Task PublishEvents()
