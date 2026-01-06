@@ -40,7 +40,7 @@ public sealed class OrderConsumer : BackgroundService
             .SetValueDeserializer(new AvroDeserializer<OrderPlaced>(schemaRegistryClient).AsSyncOverAsync())
             .Build();
 
-        _consumer.Subscribe(Topics.Orders);
+        _consumer.Subscribe(Topics.OrderPlaced);
     }
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken)

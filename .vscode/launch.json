@@ -5,14 +5,14 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Docker: Attach to Producer",
+      "name": "Docker: Attach to Service",
       "type": "docker",
       "request": "attach",
       "platform": "netCore",
       "sourceFileMap": {
         "/src": "${workspaceFolder}"
       },
-      "containerName": "order-producer"
+      "containerName": "order-service"
     },
     {
       "name": "Docker: Attach to Consumer",

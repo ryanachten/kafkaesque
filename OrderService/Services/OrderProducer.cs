@@ -44,7 +44,7 @@ public sealed class OrderProducer : IOrderProducer, IDisposable
     {
         try
         {
-            await _producer.ProduceAsync(Topics.Orders, new Message<Null, OrderPlaced>()
+            await _producer.ProduceAsync(Topics.OrderPlaced, new Message<Null, OrderPlaced>()
             {
                 Value = order
             });
