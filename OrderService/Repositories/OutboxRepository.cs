@@ -22,10 +22,16 @@ public class OutboxRepository(IDbConnectionFactory connectionFactory, IOptions<O
         LIMIT {outboxOptions.Value.ProcessingBatchSize};
     ";
 
-    private const string UpdateEventsToProcessingSql = @"
+    private static string GetUpdateEventStatusSql(OutboxEventStatus newStatus) => $@"
         UPDATE outbox_events
-        SET status = 'PROCESSING'
+        SET status = '{newStatus}'
         WHERE id = ANY(@Ids);
+    ";
+
+    private const string MarkEventAsFailedSql = @"
+        UPDATE outbox_events
+        SET status = 'FAILED', last_error = @ErrorMessage
+        WHERE id = @Id;
     ";
 
     /// <summary>
@@ -60,7 +66,7 @@ public class OutboxRepository(IDbConnectionFactory connectionFactory, IOptions<O
         {
             var eventIds = pendingEvents.Select(e => e.Id).ToArray();
             await connection.ExecuteAsync(
-                UpdateEventsToProcessingSql,
+                GetUpdateEventStatusSql(OutboxEventStatus.PROCESSING),
                 new { Ids = eventIds },
                 transaction: transaction);
         }
@@ -69,4 +75,31 @@ public class OutboxRepository(IDbConnectionFactory connectionFactory, IOptions<O
 
         return pendingEvents;
     }
+
+    public async Task UpdateEventsAsPublished(IEnumerable<Guid> eventIds)
+    {
+        using var connection = await connectionFactory.CreateConnection();
+
+        await connection.ExecuteAsync(
+            GetUpdateEventStatusSql(OutboxEventStatus.PUBLISHED),
+            new { Ids = eventIds });
+
+    }
+
+    public async Task UpdateEventsAsFailed(Dictionary<Guid, string> eventIdsAndErrorMessages)
+    {
+        using var connection = await connectionFactory.CreateConnection();
+        using var transaction = connection.BeginTransaction();
+
+        foreach (var (eventId, errorMessage) in eventIdsAndErrorMessages)
+        {
+            await connection.ExecuteAsync(
+                MarkEventAsFailedSql,
+                new { Id = eventId, ErrorMessage = errorMessage },
+                transaction: transaction);
+        }
+
+        transaction.Commit();
+    }
 }
+

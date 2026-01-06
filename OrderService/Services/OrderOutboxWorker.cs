@@ -7,7 +7,10 @@ using OrderService.Repositories;
 
 namespace OrderService.Services;
 
-public sealed class OrderOutboxWorker(IServiceProvider serviceProvider, IOptions<OutboxOptions> outboxOptions) : IHostedService, IDisposable
+public sealed class OrderOutboxWorker(
+    IServiceProvider serviceProvider,
+    IOptions<OutboxOptions> outboxOptions,
+    ILogger<OrderOutboxWorker> logger) : IHostedService, IDisposable
 {
     private PeriodicTimer? _timer;
     private Task? _executingTask;
@@ -39,11 +42,16 @@ public sealed class OrderOutboxWorker(IServiceProvider serviceProvider, IOptions
     {
         try
         {
-            await PublishEvents();
-
             while (await _timer!.WaitForNextTickAsync(stoppingToken))
             {
-                await PublishEvents();
+                try
+                {
+                    await PublishEvents();
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError("Error occurred while processing outbox {Ex}", ex);
+                }
             }
         }
         catch (OperationCanceledException)
@@ -60,20 +68,37 @@ public sealed class OrderOutboxWorker(IServiceProvider serviceProvider, IOptions
 
         var pendingOutboxEvents = await outboxRepository.GetAndUpdatePendingEvents(EventType.ORDER_PLACED);
 
-        var producerEvents = pendingOutboxEvents
-            .OrderBy(e => e.OccurredAt)
-            .Select(OutboxEventSerializer.ToOrderPlaced);
+        if (!pendingOutboxEvents.Any()) return;
+
+        logger.LogInformation("Received {Count} pending outbox events for publishing", pendingOutboxEvents.Count());
+
+        List<Guid> successfulEventIds = [];
+        Dictionary<Guid, string> failedEventIdsAndErrors = [];
 
         // TODO: should this be done in parallel or could that result in out of order processing?
-        foreach (var producerEvent in producerEvents)
+        foreach (var outboxEvent in pendingOutboxEvents)
         {
+            var producerEvent = OutboxEventSerializer.ToOrderPlaced(outboxEvent);
             if (producerEvent is null) continue;
 
-            await orderProducer.ProduceOrderPlacedEvent(producerEvent);
+            try
+            {
+                await orderProducer.ProduceOrderPlacedEvent(producerEvent);
+                successfulEventIds.Add(outboxEvent.Id);
+            }
+            catch (Exception ex)
+            {
+                failedEventIdsAndErrors.Add(outboxEvent.Id, ex.Message);
+            }
         }
 
-        // TODO: handle publishing failure by marking event as failed in DB
-        // TODO: handle publishing success by marking event as published in DB
-        // TODO: consider clean up worker for removing published events
+        await Task.WhenAll(
+            outboxRepository.UpdateEventsAsPublished(successfulEventIds),
+            outboxRepository.UpdateEventsAsFailed(failedEventIdsAndErrors));
+
+        if (successfulEventIds.Count > 0) logger.LogInformation("Marked {PublishedCount} events published", successfulEventIds.Count);
+        if (failedEventIdsAndErrors.Count > 0) logger.LogWarning("Marked {FailedCount} events as failed", failedEventIdsAndErrors.Count);
+
+        // TODO: we need to reprocess failed events within a certain retry threshold on a separate schedule and increment the retry count
     }
 }
