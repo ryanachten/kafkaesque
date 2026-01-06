@@ -7,6 +7,6 @@ public static class Constants
     /// </summary>
     public static class Topics
     {
-        public static readonly string Orders = "orders";
+        public static readonly string OrderPlaced = "order.placed";
     }
 }

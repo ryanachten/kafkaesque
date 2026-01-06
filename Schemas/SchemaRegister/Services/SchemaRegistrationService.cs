@@ -90,7 +90,7 @@ public class SchemaRegistrationService(
     {
         var fileName = Path.GetFileNameWithoutExtension(schemaFilePath);
 
-        // Convention: "orders.avsc" → topic "orders", subject "orders-value"
+        // Convention: "orders.placed.avsc" → topic "orders.placed", subject "orders.placed-value"
         var subjectName = $"{fileName}-value";
 
         _logger.LogInformation("Registering schema: {FileName}.avsc → Subject: {Subject}",
