@@ -13,9 +13,9 @@ public class OutboxRepository(IDbConnectionFactory connectionFactory, IOptions<O
         INSERT INTO outbox_events (id, entity_type, entity_id, event_type, event_version, payload, occurred_at)
         VALUES (@Id, @EntityName, @EntityId, @EventType, @EventVersion, @Payload::jsonb, @OccurredAt)";
 
-    private readonly string _getPendingEventsSql = $@"
+    private readonly string _sqlRetrieveEventsForProcessing = $@"
         SELECT * FROM outbox_events
-        WHERE status = 'PENDING'
+        WHERE (status = 'PENDING' OR (status = 'FAILED' AND retry_count < {outboxOptions.Value.RetryLimit}))
         AND event_type = @EventType
         ORDER BY occurred_at
         FOR UPDATE SKIP LOCKED
@@ -25,6 +25,16 @@ public class OutboxRepository(IDbConnectionFactory connectionFactory, IOptions<O
     private static string GetUpdateEventStatusSql(OutboxEventStatus newStatus) => $@"
         UPDATE outbox_events
         SET status = '{newStatus}'
+        WHERE id = ANY(@Ids);
+    ";
+
+    private const string UpdateEventsToProcessingSql = @"
+        UPDATE outbox_events
+        SET status = 'PROCESSING',
+            retry_count = CASE 
+                WHEN status = 'FAILED' THEN retry_count + 1
+                ELSE retry_count
+            END
         WHERE id = ANY(@Ids);
     ";
 
@@ -48,17 +58,18 @@ public class OutboxRepository(IDbConnectionFactory connectionFactory, IOptions<O
     }
 
     /// <summary>
-    /// Gets pending events and marks them as in progress in the same transaction 
+    /// Gets pending and failed events for processing and marks them as in progress in the same transaction.
+    /// Previously failed events will increment the retry count.
     /// </summary>
     /// <param name="eventType">Event type to select for</param>
     /// <returns>Pending events</returns>
-    public async Task<IEnumerable<OutboxEvent>> GetAndUpdatePendingEvents(EventType eventType)
+    public async Task<IEnumerable<OutboxEvent>> GetEventsForProcessing(EventType eventType)
     {
         using var connection = await connectionFactory.CreateConnection();
         using var transaction = connection.BeginTransaction();
 
         var pendingEvents = await connection.QueryAsync<OutboxEvent>(
-            _getPendingEventsSql,
+            _sqlRetrieveEventsForProcessing,
             new { EventType = eventType.ToString() },
             transaction: transaction);
 
@@ -66,7 +77,7 @@ public class OutboxRepository(IDbConnectionFactory connectionFactory, IOptions<O
         {
             var eventIds = pendingEvents.Select(e => e.Id).ToArray();
             await connection.ExecuteAsync(
-                GetUpdateEventStatusSql(OutboxEventStatus.PROCESSING),
+                UpdateEventsToProcessingSql,
                 new { Ids = eventIds },
                 transaction: transaction);
         }
