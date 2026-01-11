@@ -8,10 +8,14 @@ Repository for learning Kafka, event streaming and event-driven architectural pa
 - Docker and Docker Compose
 - .NET (with tools installed via `dotnet tool restore`)
 
-### Starting the project
+### Running services
 - Run the following bash script to start up the infrastructure:
    ```bash
-   ./run-local.sh
+   ./run.sh
+   ```
+- When making changes, we can rebuild and run a specific container by supplying it as an argument to the run script
+   ```bash
+   ./run.sh order-service # fulfillment-service, schema-register etc
    ```
 
 ### Creating topics
@@ -21,10 +25,5 @@ Currently the topics aren't created automatically when first starting the the Ka
 - Create a new topic `order.placed` with required partitions (3 is likely a sensible default)
 - Restart the consumer containers
 
-
-## Development
-If you've made changes locally, you won't want to restart the entire stack. To rebuild only the modified service in question, you can use this command:
-
-- To rebuild only producer: `docker-compose  -f docker-compose.kafka.yml -f docker-compose.yml up -d --build order-service`
-- To rebuild only consumer: `docker-compose  -f docker-compose.kafka.yml -f docker-compose.yml up -d --build fulfillment-service`
-- To rebuild only schema register: `docker-compose -f docker-compose.kafka.yml -f docker-compose.yml up -d --build schema-register`
+### Updating schemas
+See the following guidance for [creating or updating schemas](./Schemas/README.md) 
