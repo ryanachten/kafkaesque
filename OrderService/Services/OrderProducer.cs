@@ -5,6 +5,7 @@ using static Common.Constants;
 using Common;
 using Microsoft.Extensions.Options;
 using Schemas;
+using OrderService.Models;
 
 namespace OrderService.Services;
 
@@ -27,7 +28,7 @@ public sealed class OrderProducer : IOrderProducer, IDisposable
 
         var schemaRegistryClient = new CachedSchemaRegistryClient(schemaRegistryConfig);
 
-        // Note: AutoRegisterSchemas is disabled to avoid auto-generation issues.
+        // NOTE: AutoRegisterSchemas is disabled to avoid auto-generation issues.
         // The schema must be registered in the Schema Registry first.
         var avroSerializerConfig = new AvroSerializerConfig
         {
@@ -40,13 +41,15 @@ public sealed class OrderProducer : IOrderProducer, IDisposable
             .Build();
     }
 
-    public async Task ProduceOrderPlacedEvent(OrderPlaced order)
+    public async Task ProduceOrderPlacedEvent(OrderPlaced order, EventMetadata metadata)
     {
         try
         {
+            // TODO: pretty sure we should be passing a partition key as part of this
             await _producer.ProduceAsync(Topics.OrderPlaced, new Message<Null, OrderPlaced>()
             {
-                Value = order
+                Value = order,
+                Headers = metadata.ToKafkaHeaders()
             });
         }
         catch (ProduceException<Null, OrderPlaced> ex)
