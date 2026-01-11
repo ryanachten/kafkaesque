@@ -1,41 +1,41 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "build",
-            "command": "dotnet",
-            "type": "process",
-            "args": [
-                "build",
-                "${workspaceFolder}/KafkaExample.sln",
-                "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary;ForceNoAlign"
-            ],
-            "problemMatcher": "$msCompile"
-        },
-        {
-            "label": "publish",
-            "command": "dotnet",
-            "type": "process",
-            "args": [
-                "publish",
-                "${workspaceFolder}/KafkaExample.sln",
-                "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary;ForceNoAlign"
-            ],
-            "problemMatcher": "$msCompile"
-        },
-        {
-            "label": "watch",
-            "command": "dotnet",
-            "type": "process",
-            "args": [
-                "watch",
-                "run",
-                "--project",
-                "${workspaceFolder}/KafkaExample.sln"
-            ],
-            "problemMatcher": "$msCompile"
-        }
-    ]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/Kafkaesque.sln",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary;ForceNoAlign"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "publish",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "publish",
+        "${workspaceFolder}/Kafkaesque.sln",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary;ForceNoAlign"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "watch",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "watch",
+        "run",
+        "--project",
+        "${workspaceFolder}/Kafkaesque.sln"
+      ],
+      "problemMatcher": "$msCompile"
+    }
+  ]
 }
