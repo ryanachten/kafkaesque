@@ -7,13 +7,13 @@ using Confluent.SchemaRegistry.Serdes;
 using Microsoft.Extensions.Options;
 using static Common.Constants;
 
-namespace OrderConsumer.Services;
+namespace FulfillmentService.Services;
 
-public sealed class OrderConsumer : BackgroundService
+public sealed class FulfillmentService : BackgroundService
 {
     private readonly IConsumer<Null, OrderPlaced> _consumer;
 
-    public OrderConsumer(IOptions<KafkaConfiguration> kafkaOptions)
+    public FulfillmentService(IOptions<KafkaConfiguration> kafkaOptions)
     {
         var kafkaConfig = kafkaOptions.Value;
         var groupId = Environment.GetEnvironmentVariable("GROUP_ID");
