@@ -66,17 +66,17 @@ public sealed class OrderOutboxWorker(
         var orderProducer = scope.ServiceProvider.GetRequiredService<IOrderProducer>();
         var outboxRepository = scope.ServiceProvider.GetRequiredService<IOutboxRepository>();
 
-        var pendingOutboxEvents = await outboxRepository.GetAndUpdatePendingEvents(EventType.ORDER_PLACED);
+        var outboxEvents = await outboxRepository.GetEventsForProcessing(EventType.ORDER_PLACED);
 
-        if (!pendingOutboxEvents.Any()) return;
+        if (!outboxEvents.Any()) return;
 
-        logger.LogInformation("Received {Count} pending outbox events for publishing", pendingOutboxEvents.Count());
+        logger.LogInformation("Received {Count} pending outbox events for publishing", outboxEvents.Count());
 
         List<Guid> successfulEventIds = [];
         Dictionary<Guid, string> failedEventIdsAndErrors = [];
 
         // TODO: should this be done in parallel or could that result in out of order processing?
-        foreach (var outboxEvent in pendingOutboxEvents)
+        foreach (var outboxEvent in outboxEvents)
         {
             var producerEvent = OutboxEventSerializer.ToOrderPlaced(outboxEvent);
             if (producerEvent is null) continue;
@@ -98,7 +98,5 @@ public sealed class OrderOutboxWorker(
 
         if (successfulEventIds.Count > 0) logger.LogInformation("Marked {PublishedCount} events published", successfulEventIds.Count);
         if (failedEventIdsAndErrors.Count > 0) logger.LogWarning("Marked {FailedCount} events as failed", failedEventIdsAndErrors.Count);
-
-        // TODO: we need to reprocess failed events within a certain retry threshold on a separate schedule and increment the retry count
     }
 }
