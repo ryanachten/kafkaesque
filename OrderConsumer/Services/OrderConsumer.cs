@@ -36,6 +36,7 @@ public sealed class OrderConsumer : BackgroundService
 
         var schemaRegistryClient = new CachedSchemaRegistryClient(schemaRegistryConfig);
 
+        // TODO: conduct deduplication of events on consumer
         _consumer = new ConsumerBuilder<Null, OrderPlaced>(consumerConfig)
             .SetValueDeserializer(new AvroDeserializer<OrderPlaced>(schemaRegistryClient).AsSyncOverAsync())
             .Build();

@@ -30,3 +30,11 @@ Schemas use [Avro JSON format](https://avro.apache.org/docs/current/specificatio
   ]
 }
 ```
+
+## Schema Versioning
+
+**Wire-Level Versioning**: Schema Registry automatically manages schema versions and IDs. Consumers use the schema ID embedded in messages to deserialize correctly.
+
+**Application-Level Versioning**: Define version constants in your service for each event type (e.g., `OrderPlaced = 1`). Increment versions when making business-significant changes:
+- **Breaking changes** (removed/renamed fields, changed semantics): Increment version
+- **Additive changes** (new optional fields): Consider incrementing for tracking, but Schema Registry handles compatibility

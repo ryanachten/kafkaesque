@@ -81,9 +81,11 @@ public sealed class OrderOutboxWorker(
             var producerEvent = OutboxEventSerializer.ToOrderPlaced(outboxEvent);
             if (producerEvent is null) continue;
 
+            var metadata = EventMetadata.FromOutboxEvent(outboxEvent);
+
             try
             {
-                await orderProducer.ProduceOrderPlacedEvent(producerEvent);
+                await orderProducer.ProduceOrderPlacedEvent(producerEvent, metadata);
                 successfulEventIds.Add(outboxEvent.Id);
             }
             catch (Exception ex)
