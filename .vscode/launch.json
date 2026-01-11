@@ -5,7 +5,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Docker: Attach to Service",
+      "name": "Docker: Attach to Producer",
       "type": "docker",
       "request": "attach",
       "platform": "netCore",
@@ -22,7 +22,7 @@
       "sourceFileMap": {
         "/src": "${workspaceFolder}"
       },
-      "containerName": "order-consumer"
+      "containerName": "fulfillment-service"
     }
   ]
 }

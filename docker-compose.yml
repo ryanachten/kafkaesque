@@ -30,11 +30,11 @@ services:
         condition: service_started
     restart: "no"
 
-  order-consumer:
-    container_name: order-consumer
+  fulfillment-service:
+    container_name: fulfillment-service
     build:
       context: .
-      dockerfile: OrderConsumer/Dockerfile
+      dockerfile: FulfillmentService/Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
