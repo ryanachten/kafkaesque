@@ -6,11 +6,14 @@ Repository for learning Kafka, event streaming and event-driven architectural pa
 
 ```mermaid
 graph LR
-    subgraph SchemaManagement["Schema Management"]
+    subgraph InfraTools["Infrastructure Tools"]
+        TopicConfig[kafka-topics.yml]
+        TopicRegTool[Topic Register Tool]
         SchemaFiles[Avro Schemas]
         SchemaGen[Schema Generator]
         SchemaRegTool[Schema Register Tool]
         
+        TopicConfig --> TopicRegTool
         SchemaFiles --> SchemaGen
         SchemaGen --> |Generates C# Classes| SchemaFiles
     end
@@ -50,6 +53,7 @@ graph LR
         Consumer --> FulfillSvc
     end
 
+    TopicRegTool --> |Creates Topics| Broker
     SchemaRegTool --> |Registers Schemas| SchemaReg
     HTTP -->|POST /orders| API
     OutboxWorker -->|Publishes Events| Broker
@@ -65,7 +69,10 @@ graph LR
 - **Outbox Worker**: Background service that polls the outbox table and publishes events to Kafka
 - **Kafka Infrastructure**: Message broker with Schema Registry for Avro schema validation
 - **Fulfillment Service**: Background consumer that processes order events from Kafka
-- **Schema Management**: Avro schemas for type-safe event serialization/deserialization
+- **Infrastructure Tools**: 
+  - **Topic Register**: Automatically registers Kafka topics from configuration on startup
+  - **Schema Register**: Registers Avro schemas with the Schema Registry
+  - **Schema Generator**: Generates C# classes from Avro schema definitions
 
 
 ## Getting Started
@@ -81,15 +88,17 @@ graph LR
    ```
 - When making changes, we can rebuild and run a specific container by supplying it as an argument to the run script
    ```bash
-   ./run.sh order-service # fulfillment-service, schema-register etc
+   ./run.sh order-service # fulfillment-service, schema-register, topic-register etc
    ```
 
-### Creating topics
-Currently the topics aren't created automatically when first starting the the Kafka instance (TODO). Instead we need to create these manually through the control center
-- Open http://localhost:9021 to view the Kafka control center
-- Navigate to the cluster and then to the topic
-- Create a new topic `order.placed` with required partitions (3 is likely a sensible default)
-- Restart the consumer containers
+### Managing topics
+Topics are automatically created on startup via the `topic-register` service, which reads from [kafka-topics.yml](Schemas/kafka-topics.yml).
+
+**Adding new topics:**
+1. Edit [kafka-topics.yml](Schemas/kafka-topics.yml) to add your topic definition
+2. Restart the infrastructure: `./run.sh`
+
+Topics can also be managed manually through the Kafka Control Center at http://localhost:9021.
 
 ### Updating schemas
 See the following guidance for [creating or updating schemas](./Schemas/README.md) 

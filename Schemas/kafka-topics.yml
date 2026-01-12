@@ -1,0 +1,4 @@
+topics:
+  - name: order.placed
+    partitions: 3
+    replication_factor: 1
