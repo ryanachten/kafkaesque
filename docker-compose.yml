@@ -16,6 +16,19 @@ services:
       timeout: 5s
       retries: 5
 
+  topic-register:
+    container_name: topic-register
+    build:
+      context: .
+      dockerfile: Schemas/TopicRegister/Dockerfile
+    environment:
+      - DOTNET_ENVIRONMENT=Development
+      - Kafka__BootstrapServers=broker:29092
+    depends_on:
+      broker:
+        condition: service_started
+    restart: "no"
+
   schema-register:
     container_name: schema-register
     build:
@@ -26,6 +39,8 @@ services:
       - Kafka__BootstrapServers=broker:29092
       - Kafka__SchemaRegistryUrl=http://schema-registry:8081
     depends_on:
+      topic-register:
+        condition: service_completed_successfully
       schema-registry:
         condition: service_started
     restart: "no"
