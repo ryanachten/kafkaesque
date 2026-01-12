@@ -9,11 +9,11 @@ using static Common.Constants;
 
 namespace FulfillmentService.Services;
 
-public sealed class FulfillmentService : BackgroundService
+public sealed class OrderConsumer : BackgroundService
 {
-    private readonly IConsumer<Null, OrderPlaced> _consumer;
+    private readonly IConsumer<string, OrderPlaced> _consumer;
 
-    public FulfillmentService(IOptions<KafkaConfiguration> kafkaOptions)
+    public OrderConsumer(IOptions<KafkaConfiguration> kafkaOptions)
     {
         var kafkaConfig = kafkaOptions.Value;
         var groupId = Environment.GetEnvironmentVariable("GROUP_ID");
@@ -37,7 +37,7 @@ public sealed class FulfillmentService : BackgroundService
         var schemaRegistryClient = new CachedSchemaRegistryClient(schemaRegistryConfig);
 
         // TODO: conduct deduplication of events on consumer
-        _consumer = new ConsumerBuilder<Null, OrderPlaced>(consumerConfig)
+        _consumer = new ConsumerBuilder<string, OrderPlaced>(consumerConfig)
             .SetValueDeserializer(new AvroDeserializer<OrderPlaced>(schemaRegistryClient).AsSyncOverAsync())
             .Build();
 
