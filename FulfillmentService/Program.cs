@@ -1,12 +1,12 @@
 using Common;
-using FulfillmentServiceWorker = FulfillmentService.Services.FulfillmentService;
+using FulfillmentService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<KafkaConfiguration>(
     builder.Configuration.GetRequiredSection(KafkaConfiguration.SectionName));
 
-builder.Services.AddHostedService<FulfillmentServiceWorker>();
+builder.Services.AddHostedService<OrderConsumer>();
 
 var app = builder.Build();
 

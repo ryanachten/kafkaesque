@@ -14,7 +14,19 @@ public class OutboxRepository(IDbConnectionFactory connectionFactory, IOptions<O
         VALUES (@Id, @EntityName, @EntityId, @EventType, @EventVersion, @Payload::jsonb, @OccurredAt)";
 
     private readonly string _sqlRetrieveEventsForProcessing = $@"
-        SELECT * FROM outbox_events
+        SELECT 
+            id AS Id,
+            entity_type AS EntityName,
+            entity_id AS EntityId,
+            event_type AS EventType,
+            event_version AS EventVersion,
+            payload AS Payload,
+            occurred_at AS OccurredAt,
+            status AS Status,
+            published_at AS PublishedAt,
+            retry_count AS RetryCount,
+            last_error AS LastError
+        FROM outbox_events
         WHERE (status = 'PENDING' OR (status = 'FAILED' AND retry_count < {outboxOptions.Value.RetryLimit}))
         AND event_type = @EventType
         ORDER BY occurred_at

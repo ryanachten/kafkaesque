@@ -11,9 +11,10 @@ namespace OrderService.Services;
 
 public sealed class OrderProducer : IOrderProducer, IDisposable
 {
-    private readonly IProducer<Null, OrderPlaced> _producer;
+    private readonly IProducer<string, OrderPlaced> _producer;
+    private readonly ILogger<OrderProducer> _logger;
 
-    public OrderProducer(IOptions<KafkaConfiguration> kafkaOptions)
+    public OrderProducer(IOptions<KafkaConfiguration> kafkaOptions, ILogger<OrderProducer> logger)
     {
         var kafkaConfig = kafkaOptions.Value;
         var producerConfig = new ProducerConfig()
@@ -36,25 +37,27 @@ public sealed class OrderProducer : IOrderProducer, IDisposable
             UseLatestVersion = true
         };
 
-        _producer = new ProducerBuilder<Null, OrderPlaced>(producerConfig)
+        _producer = new ProducerBuilder<string, OrderPlaced>(producerConfig)
             .SetValueSerializer(new AvroSerializer<OrderPlaced>(schemaRegistryClient, avroSerializerConfig))
             .Build();
+
+        _logger = logger;
     }
 
     public async Task ProduceOrderPlacedEvent(OrderPlaced order, EventMetadata metadata)
     {
         try
         {
-            // TODO: pretty sure we should be passing a partition key as part of this
-            await _producer.ProduceAsync(Topics.OrderPlaced, new Message<Null, OrderPlaced>()
+            await _producer.ProduceAsync(Topics.OrderPlaced, new Message<string, OrderPlaced>()
             {
+                Key = order.OrderShortCode,
                 Value = order,
                 Headers = metadata.ToKafkaHeaders()
             });
         }
-        catch (ProduceException<Null, OrderPlaced> ex)
+        catch (ProduceException<string, OrderPlaced> ex)
         {
-            Console.WriteLine($"Failed to produce order: {ex.Error.Reason}");
+            _logger.LogError("Failed to produce order: {Reason}", ex.Error.Reason);
             throw;
         }
     }

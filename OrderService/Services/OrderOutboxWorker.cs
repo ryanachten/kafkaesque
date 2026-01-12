@@ -90,6 +90,7 @@ public sealed class OrderOutboxWorker(
             }
             catch (Exception ex)
             {
+                logger.LogError("Error publishing outbox event {ID}: {Reason}", outboxEvent.Id, ex.Message);
                 failedEventIdsAndErrors.Add(outboxEvent.Id, ex.Message);
             }
         }
