@@ -2,6 +2,72 @@
 
 Repository for learning Kafka, event streaming and event-driven architectural patterns.
 
+## Architecture
+
+```mermaid
+graph LR
+    subgraph SchemaManagement["Schema Management"]
+        SchemaFiles[Avro Schemas]
+        SchemaGen[Schema Generator]
+        SchemaRegTool[Schema Register Tool]
+        
+        SchemaFiles --> SchemaGen
+        SchemaGen --> |Generates C# Classes| SchemaFiles
+    end
+
+    subgraph Client
+        HTTP[HTTP Client]
+    end
+
+    subgraph OrderService["Order Service (Producer)"]
+        API[REST API]
+        OrderSvc[Order Service]
+        OrderRepo[Order Repository]
+        OutboxRepo[Outbox Repository]
+        DB[(PostgreSQL<br/>orders DB)]
+        OutboxWorker[Outbox Worker<br/>Background Service]
+        
+        API --> OrderSvc
+        OrderSvc --> OrderRepo
+        OrderSvc --> OutboxRepo
+        OrderRepo --> DB
+        OutboxRepo --> DB
+        OutboxWorker --> OutboxRepo
+    end
+
+    subgraph KafkaInfra["Kafka Infrastructure"]
+        SchemaReg[Schema Registry]
+        Broker[Kafka Broker]
+        Topic[Topic: order.placed]
+        
+        Broker --> Topic
+    end
+
+    subgraph FulfillmentService["Fulfillment Service (Consumer)"]
+        Consumer[Kafka Consumer]
+        FulfillSvc[Fulfillment Service<br/>Background Service]
+        
+        Consumer --> FulfillSvc
+    end
+
+    SchemaRegTool --> |Registers Schemas| SchemaReg
+    HTTP -->|POST /orders| API
+    OutboxWorker -->|Publishes Events| Broker
+    OutboxWorker -.->|Validates Schema| SchemaReg
+    Topic -->|Consumes Events| Consumer
+    Consumer -.->|Validates Schema| SchemaReg
+
+  
+```
+
+**Key Components:**
+- **Order Service**: REST API that creates orders and stores them in PostgreSQL with an outbox pattern for reliable event publishing
+- **Outbox Worker**: Background service that polls the outbox table and publishes events to Kafka
+- **Kafka Infrastructure**: Message broker with Schema Registry for Avro schema validation
+- **Fulfillment Service**: Background consumer that processes order events from Kafka
+- **Schema Management**: Avro schemas for type-safe event serialization/deserialization
+
+
 ## Getting Started
 
 ### Prerequisites
