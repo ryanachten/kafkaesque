@@ -1,4 +1,15 @@
 services:
+  seq:
+    container_name: seq
+    image: datalust/seq:latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SEQ_FIRSTRUN_NOAUTHENTICATION=true
+    ports:
+      - "5341:80"
+    volumes:
+      - seq-data:/data
+
   postgres:
     container_name: postgres
     image: postgres:16-alpine
@@ -57,11 +68,14 @@ services:
       - Kafka__BootstrapServers=broker:29092
       - Kafka__SchemaRegistryUrl=http://schema-registry:8081
       - GROUP_ID=test-1
+      - Seq__ServerUrl=http://seq:5341
     ports:
       - "5054:8080"
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
     depends_on:
+      seq:
+        condition: service_started
       schema-register:
         condition: service_completed_successfully
 
@@ -77,11 +91,14 @@ services:
       - Kafka__BootstrapServers=broker:29092
       - Kafka__SchemaRegistryUrl=http://schema-registry:8081
       - ConnectionStrings__OrdersDatabase=Host=postgres;Port=5432;Database=orders;Username=postgres;Password=postgres
+      - Seq__ServerUrl=http://seq:5341
     ports:
       - "5295:8080"
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
     depends_on:
+      seq:
+        condition: service_started
       postgres:
         condition: service_healthy
       schema-register:
@@ -89,3 +106,4 @@ services:
 
 volumes:
   postgres-data:
+  seq-data:

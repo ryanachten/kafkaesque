@@ -115,5 +115,8 @@ Topics are automatically created on startup via the `topic-register` service, wh
 
 Topics can also be managed manually through the Kafka Control Center at http://localhost:9021.
 
+### Viewing logs
+Structured logs from services are sent to Seq in development mode. Access the Seq web UI at http://localhost:5341 to search, filter, and analyze logs.
+
 ### Updating schemas
 See the following guidance for [creating or updating schemas](./Schemas/README.md) 
