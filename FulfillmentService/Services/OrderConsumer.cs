@@ -55,8 +55,6 @@ public sealed class OrderConsumer : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Order consumer started, messages will appear below:");
-
         try
         {
             while (!stoppingToken.IsCancellationRequested)
@@ -66,13 +64,7 @@ public sealed class OrderConsumer : BackgroundService
                     var response = _consumer.Consume(stoppingToken);
                     if (response.Message != null)
                     {
-                        var eventData = response.Message.Value;
-
-                        _logger.LogInformation("Received order {OrderShortCode} with {ItemCount} items",
-                            eventData.OrderShortCode,
-                            eventData.Items.Count);
-
-                        await _workerPool.EnqueueOrder(new Order(eventData), stoppingToken);
+                        await _workerPool.EnqueueOrder(new Order(response.Message.Value), stoppingToken);
                     }
                 }
                 catch (ConsumeException ex)

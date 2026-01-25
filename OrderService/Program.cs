@@ -8,8 +8,23 @@ using OrderService.Models;
 using OrderService.Models.DTOs;
 using System.Text.Json.Serialization;
 using OrderService.Configuration;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var loggerConfiguration = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.WithProperty("Service", "OrderService")
+    .WriteTo.Console();
+
+if (builder.Environment.IsDevelopment())
+{
+    loggerConfiguration.WriteTo.Seq(builder.Configuration["Seq:ServerUrl"] ?? "http://localhost:5341");
+}
+
+Log.Logger = loggerConfiguration.CreateLogger();
+
+builder.Host.UseSerilog();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -52,6 +67,8 @@ var connectionString = builder.Configuration.GetConnectionString("OrdersDatabase
     ?? throw new InvalidOperationException("OrdersDatabase connection string is not configured");
 
 DatabaseMigrator.MigrateDatabase(connectionString, app.Logger);
+
+app.UseSerilogRequestLogging();
 
 app.MapPost("/orders", async ([FromBody] CreateOrderRequest order, IOrderService service) => await service.CreateOrder(new Order(order)));
 

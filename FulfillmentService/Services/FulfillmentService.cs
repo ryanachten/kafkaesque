@@ -17,6 +17,6 @@ public sealed class FulfillmentService(ILogger<FulfillmentService> logger) : IFu
 
         // TODO: update order status
 
-        _logger.LogInformation("Completed processing order {OrderShortCode} in {FulfillmentTime}", order.OrderShortCode, fulfillmentTime);
+        _logger.LogInformation("Completed processing order {OrderShortCode} in {FulfillmentTime} seconds", order.OrderShortCode, fulfillmentTime);
     }
 }
