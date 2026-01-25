@@ -1,4 +1,5 @@
 using Common;
+using FulfillmentService.Models;
 using Schemas;
 using Confluent.Kafka;
 using Confluent.Kafka.SyncOverAsync;
@@ -12,10 +13,19 @@ namespace FulfillmentService.Services;
 public sealed class OrderConsumer : BackgroundService
 {
     private readonly IConsumer<string, OrderPlaced> _consumer;
+    private readonly IOrderWorkerPool _workerPool;
+    private readonly ILogger<OrderConsumer> _logger;
 
-    public OrderConsumer(IOptions<KafkaConfiguration> kafkaOptions)
+    public OrderConsumer(
+        IOptions<KafkaConfiguration> kafkaOptions,
+        IOrderWorkerPool queueProcessor,
+        ILogger<OrderConsumer> logger)
     {
+        _workerPool = queueProcessor;
+        _logger = logger;
+
         var kafkaConfig = kafkaOptions.Value;
+
         var groupId = Environment.GetEnvironmentVariable("GROUP_ID");
         if (groupId == null || groupId == string.Empty)
         {
@@ -36,7 +46,6 @@ public sealed class OrderConsumer : BackgroundService
 
         var schemaRegistryClient = new CachedSchemaRegistryClient(schemaRegistryConfig);
 
-        // TODO: conduct deduplication of events on consumer
         _consumer = new ConsumerBuilder<string, OrderPlaced>(consumerConfig)
             .SetValueDeserializer(new AvroDeserializer<OrderPlaced>(schemaRegistryClient).AsSyncOverAsync())
             .Build();
@@ -44,9 +53,9 @@ public sealed class OrderConsumer : BackgroundService
         _consumer.Subscribe(Topics.OrderPlaced);
     }
 
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        Console.WriteLine("Messages will appear below:");
+        _logger.LogInformation("Order consumer started, messages will appear below:");
 
         try
         {
@@ -57,12 +66,18 @@ public sealed class OrderConsumer : BackgroundService
                     var response = _consumer.Consume(stoppingToken);
                     if (response.Message != null)
                     {
-                        Console.WriteLine($"Received order with {response.Message.Value.Items.Count} items");
+                        var eventData = response.Message.Value;
+
+                        _logger.LogInformation("Received order {OrderShortCode} with {ItemCount} items",
+                            eventData.OrderShortCode,
+                            eventData.Items.Count);
+
+                        await _workerPool.EnqueueOrder(new Order(eventData), stoppingToken);
                     }
                 }
                 catch (ConsumeException ex)
                 {
-                    Console.WriteLine($"Exception consuming message {ex.Message}");
+                    _logger.LogError(ex, "Exception consuming message {Message}", ex.Message);
                     throw;
                 }
             }
@@ -71,8 +86,6 @@ public sealed class OrderConsumer : BackgroundService
         {
             _consumer.Close();
         }
-
-        return Task.CompletedTask;
     }
 
     public override void Dispose()

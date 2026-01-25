@@ -47,10 +47,22 @@ graph LR
     end
 
     subgraph FulfillmentService["Fulfillment Service (Consumer)"]
-        Consumer[Kafka Consumer]
-        FulfillSvc[Fulfillment Service<br/>Background Service]
+        Consumer[Order Consumer<br/>Background Service]
+        WorkerPool[Order Worker Pool<br/>Background Service]
+        Queue[Bounded Channel Queue]
+        Worker1[Worker 1]
+        Worker2[Worker 2]
+        Worker3[Worker 3]
+        FulfillSvc[Fulfillment Service]
         
-        Consumer --> FulfillSvc
+        Consumer --> |Enqueues Orders| Queue
+        Queue --> WorkerPool
+        WorkerPool --> Worker1
+        WorkerPool --> Worker2
+        WorkerPool --> Worker3
+        Worker1 --> FulfillSvc
+        Worker2 --> FulfillSvc
+        Worker3 --> FulfillSvc
     end
 
     TopicRegTool --> |Creates Topics| Broker
@@ -68,7 +80,10 @@ graph LR
 - **Order Service**: REST API that creates orders and stores them in PostgreSQL with an outbox pattern for reliable event publishing
 - **Outbox Worker**: Background service that polls the outbox table and publishes events to Kafka
 - **Kafka Infrastructure**: Message broker with Schema Registry for Avro schema validation
-- **Fulfillment Service**: Background consumer that processes order events from Kafka
+- **Fulfillment Service**: Consumer service that processes order events from Kafka using a worker pool pattern
+  - **Order Consumer**: Consumes events from Kafka and maps them to domain models
+  - **Order Worker Pool**: Manages a bounded queue and configurable worker threads for concurrent order processing
+  - **Fulfillment Service**: Processes individual orders (simulates fulfillment with random delays)
 - **Infrastructure Tools**: 
   - **Topic Register**: Automatically registers Kafka topics from configuration on startup
   - **Schema Register**: Registers Avro schemas with the Schema Registry
