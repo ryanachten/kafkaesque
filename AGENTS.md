@@ -11,3 +11,8 @@ The following code conventions must be followed at all times:
 Use judgement for these code conventions:
 - Use primary constructors where appropriate
 - Ensure all third-party packages are well supported with recent commit activity prior to adding to to the project
+
+<!-- SPECKIT START -->
+For additional context about technologies to be used, project structure,
+shell commands, and other important information, read the current plan
+<!-- SPECKIT END -->
