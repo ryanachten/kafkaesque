@@ -1,5 +1,7 @@
 using Common;
 using FulfillmentService.Configuration;
+using FulfillmentService.Data;
+using FulfillmentService.Repositories;
 using FulfillmentService.Services;
 using Serilog;
 
@@ -25,6 +27,8 @@ builder.Services.Configure<KafkaConfiguration>(
 builder.Services.Configure<WorkerPoolOptions>(
     builder.Configuration.GetRequiredSection(WorkerPoolOptions.SectionName));
 
+builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
+builder.Services.AddSingleton<IFulfillmentOrderRepository, FulfillmentOrderRepository>();
 builder.Services.AddSingleton<IFulfillmentService, FulfillmentService.Services.FulfillmentService>();
 builder.Services.AddSingleton<IOrderWorkerPool, OrderWorkerPool>();
 builder.Services.AddHostedService(sp => (OrderWorkerPool)sp.GetRequiredService<IOrderWorkerPool>());
