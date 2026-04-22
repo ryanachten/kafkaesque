@@ -42,8 +42,10 @@ graph LR
         SchemaReg[Schema Registry]
         Broker[Kafka Broker]
         Topic[Topic: order.placed]
+        CDCTopic[Topic: dbserver.public.orders]
         
         Broker --> Topic
+        Broker --> CDCTopic
     end
 
     subgraph FulfillmentService["Fulfillment Service (Consumer)"]
@@ -54,6 +56,7 @@ graph LR
         Worker2[Worker 2]
         Worker3[Worker 3]
         FulfillSvc[Fulfillment Service]
+        FulfillRepo[FulfillmentOrder<br/>Repository]
         
         Consumer --> |Enqueues Orders| Queue
         Queue --> WorkerPool
@@ -63,7 +66,19 @@ graph LR
         Worker1 --> FulfillSvc
         Worker2 --> FulfillSvc
         Worker3 --> FulfillSvc
+        FulfillSvc --> FulfillRepo
+        FulfillRepo --> DB
     end
+
+    subgraph CDC["Change Data Capture"]
+        Debezium[Debezium<br/>Connector]
+        WAL[PostgreSQL WAL]
+        
+        WAL --> Debezium
+        Debezium --> CDCTopic
+    end
+
+    DB -.->|WAL| WAL
 
     TopicRegTool --> |Creates Topics| Broker
     SchemaRegTool --> |Registers Schemas| SchemaReg
@@ -84,10 +99,28 @@ graph LR
   - **Order Consumer**: Consumes events from Kafka and maps them to domain models
   - **Order Worker Pool**: Manages a bounded queue and configurable worker threads for concurrent order processing
   - **Fulfillment Service**: Processes individual orders (simulates fulfillment with random delays)
+  - **FulfillmentOrder Repository**: Persists fulfillment status and timestamp to PostgreSQL
+- **CDC (Change Data Capture)**: Debezium connector streams order status changes to Kafka for downstream consumers
 - **Infrastructure Tools**: 
   - **Topic Register**: Automatically registers Kafka topics from configuration on startup
   - **Schema Register**: Registers Avro schemas with the Schema Registry
   - **Schema Generator**: Generates C# classes from Avro schema definitions
+
+### Event Flow
+
+1. **Order Placement**: Client → OrderService → PostgreSQL → OutboxWorker → Kafka (topic: order.placed)
+2. **Fulfillment Processing**: Kafka → FulfillmentService → PostgreSQL (fulfilled_at, status)
+3. **CDC Notification**: PostgreSQL WAL → Debezium → Kafka (topic: dbserver.public.orders)
+
+### Database Schema
+
+The `orders` table includes fulfillment tracking:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| order_short_code | VARCHAR | Unique order identifier |
+| status | VARCHAR | PENDING, FULFILLED, SHIPPED |
+| fulfilled_at | TIMESTAMPTZ | When fulfillment completed |
 
 
 ## Getting Started
