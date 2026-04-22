@@ -42,6 +42,7 @@ public sealed class OrderConsumer : BackgroundService
             GroupId = groupId,
             BootstrapServers = kafkaConfig.BootstrapServers,
             AutoOffsetReset = AutoOffsetReset.Earliest,
+            EnableAutoCommit = false,
         };
 
         var schemaRegistryClient = new CachedSchemaRegistryClient(schemaRegistryConfig);
@@ -64,12 +65,23 @@ public sealed class OrderConsumer : BackgroundService
                     var response = _consumer.Consume(stoppingToken);
                     if (response.Message != null)
                     {
-                        await _workerPool.EnqueueOrder(new Order(response.Message.Value), stoppingToken);
+                        var order = new Order(response.Message.Value);
+                        await _workerPool.EnqueueOrder(order, stoppingToken);
+                        _consumer.Commit(response);
                     }
                 }
                 catch (ConsumeException ex)
                 {
                     _logger.LogError(ex, "Exception consuming message {Message}", ex.Message);
+                    throw;
+                }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Exception enqueueing consumed order message");
                     throw;
                 }
             }

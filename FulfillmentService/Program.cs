@@ -38,4 +38,11 @@ var app = builder.Build();
 
 app.UseSerilogRequestLogging();
 
-await app.RunAsync();
+try
+{
+    await app.RunAsync();
+}
+finally
+{
+    Log.CloseAndFlush();
+}

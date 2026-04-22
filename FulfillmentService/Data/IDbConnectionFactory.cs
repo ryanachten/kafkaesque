@@ -4,5 +4,5 @@ namespace FulfillmentService.Data;
 
 public interface IDbConnectionFactory
 {
-    Task<IDbConnection> CreateConnection();
+    Task<IDbConnection> CreateConnection(CancellationToken cancellationToken = default);
 }

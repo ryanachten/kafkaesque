@@ -22,11 +22,13 @@ public class FulfillmentOrderRepository(IDbConnectionFactory connectionFactory) 
 
     public async Task<bool> UpdateFulfilledStatus(string orderShortCode, CancellationToken cancellationToken = default)
     {
-        using var connection = await connectionFactory.CreateConnection();
+        using var connection = await connectionFactory.CreateConnection(cancellationToken);
 
         var existingOrder = await connection.QuerySingleOrDefaultAsync<dynamic>(
-            CheckStatusSql,
-            new { OrderShortCode = orderShortCode });
+            new CommandDefinition(
+                CheckStatusSql,
+                new { OrderShortCode = orderShortCode },
+                cancellationToken: cancellationToken));
 
         if (existingOrder == null)
         {
@@ -40,8 +42,10 @@ public class FulfillmentOrderRepository(IDbConnectionFactory connectionFactory) 
         }
 
         var result = await connection.ExecuteAsync(
-            UpdateFulfilledStatusSql,
-            new { OrderShortCode = orderShortCode, NewStatus = OrderStatus.Fulfilled.ToString() });
+            new CommandDefinition(
+                UpdateFulfilledStatusSql,
+                new { OrderShortCode = orderShortCode, NewStatus = OrderStatus.Fulfilled.ToString() },
+                cancellationToken: cancellationToken));
 
         return result > 0;
     }

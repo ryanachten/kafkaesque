@@ -49,8 +49,8 @@
 
 **Implementation Tasks**:
 
-- [ ] T009 [P] [US2] Create Debezium connector configuration in docker-compose/debezium-config/postgres-orders-connector.json
-- [ ] T010 [US2] Add database update to FulfillmentOrderRepository in FulfillmentService/Repositories/FulfillmentOrderRepository.cs to set status to FULFILLED (triggers CDC)
+- [X] T009 [P] [US2] Create Debezium connector configuration in docker-compose/debezium-config/postgres-orders-connector.json
+- [X] T010 [US2] Add database update to FulfillmentOrderRepository in FulfillmentService/Repositories/FulfillmentOrderRepository.cs to set status to FULFILLED (triggers CDC)
 
 **Tests**:
 

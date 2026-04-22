@@ -8,10 +8,10 @@ public class DbConnectionFactory(IConfiguration configuration) : IDbConnectionFa
     private readonly string _connectionString = configuration.GetConnectionString("FulfillmentDatabase")
             ?? throw new InvalidOperationException("FulfillmentDatabase connection string is not configured");
 
-    public async Task<IDbConnection> CreateConnection()
+    public async Task<IDbConnection> CreateConnection(CancellationToken cancellationToken = default)
     {
         var connection = new NpgsqlConnection(_connectionString);
-        await connection.OpenAsync();
+        await connection.OpenAsync(cancellationToken);
         return connection;
     }
 }

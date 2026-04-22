@@ -55,6 +55,10 @@ public sealed class OrderWorkerPool : BackgroundService, IOrderWorkerPool
                 _logger.LogInformation("Worker {WorkerId} processing order {OrderId}", workerId, order.OrderShortCode);
                 await _orderProcessingService.FulfillOrder(order, cancellationToken);
             }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Worker {WorkerId} failed to process order {OrderId}", workerId, order.OrderShortCode);

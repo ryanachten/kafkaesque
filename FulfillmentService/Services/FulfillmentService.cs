@@ -7,7 +7,6 @@ public sealed class FulfillmentService(
     ILogger<FulfillmentService> logger,
     IFulfillmentOrderRepository orderRepository) : IFulfillmentService
 {
-    private readonly Random _random = new();
     private readonly ILogger<FulfillmentService> _logger = logger;
     private readonly IFulfillmentOrderRepository _orderRepository = orderRepository;
     private const int MaxFulfillmentTime = 10;
@@ -16,7 +15,7 @@ public sealed class FulfillmentService(
     {
         _logger.LogInformation("Processing order {OrderShortCode} with {ItemCount} items", order.OrderShortCode, order.Items.Count());
 
-        var fulfillmentTime = TimeSpan.FromSeconds(_random.Next(MaxFulfillmentTime));
+        var fulfillmentTime = TimeSpan.FromSeconds(Random.Shared.Next(MaxFulfillmentTime));
         await Task.Delay(fulfillmentTime, cancellationToken);
 
         var updated = await _orderRepository.UpdateFulfilledStatus(order.OrderShortCode, cancellationToken);
