@@ -1,0 +1,32 @@
+{
+  "name": "postgres-orders-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "tasks.max": "1",
+    "database.hostname": "postgres",
+    "database.port": "5432",
+    "database.user": "postgres",
+    "database.password": "postgres",
+    "database.dbname": "orders",
+    "database.server.name": "dbserver",
+    "table.include.list": "public.orders",
+    "topic.prefix": "dbserver",
+    "schema.history.internal.kafka.bootstrap.servers": "broker:29092",
+    "schema.history.internal.kafka.topic": "schema-changes.orders",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false",
+    "snapshot.mode": "initial",
+    "decimal.handling.mode": "double",
+    "time.precision.mode": "adaptive",
+    "include.schema.changes": "false",
+    "publish.with.quotas.enabled": "false",
+    "tombstones.on.delete": "false",
+    "column.filter.mode": "exclusion",
+    "column.include.list": "public.orders:order_short_code,status,fulfilled_at",
+    "transforms": "unwrap",
+    "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+    "transforms.unwrap.drop.tombstones": "false",
+    "transforms.unwrap.operation.header": "false"
+  }
+}
