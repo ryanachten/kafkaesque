@@ -16,6 +16,11 @@ public class OrderRepository(IDbConnectionFactory connectionFactory, IOutboxRepo
         INSERT INTO order_items (order_id, product_id, count)
         VALUES (@OrderId, @ProductId, @Count)";
 
+    private const string UpdateStatusSql = @"
+        UPDATE orders
+        SET status = @Status, updated_at = NOW()
+        WHERE order_short_code = @OrderShortCode";
+
     public async Task<Order> Create(Order order)
     {
         using var connection = await connectionFactory.CreateConnection();
@@ -48,5 +53,11 @@ public class OrderRepository(IDbConnectionFactory connectionFactory, IOutboxRepo
             transaction.Rollback();
             throw;
         }
+    }
+
+    public async Task UpdateStatus(string orderShortCode, OrderStatus status)
+    {
+        using var connection = await connectionFactory.CreateConnection();
+        await connection.ExecuteAsync(UpdateStatusSql, new { OrderShortCode = orderShortCode, Status = status.ToString() });
     }
 }

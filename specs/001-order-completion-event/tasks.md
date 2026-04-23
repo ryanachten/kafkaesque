@@ -44,15 +44,15 @@
 
 ### Implementation for User Story 1
 
-- [ ] T006 [P] [US1] Create OrderFulfilled Avro generated class in Schemas/Generated/Schemas/OrderFulfilled.cs
-- [ ] T007 [P] [US1] Create EventMetadata Avro generated class in Schemas/Generated/Schemas/EventMetadata.cs
-- [ ] T008 [US1] Implement IOrderFulfilledProducer interface in FulfillmentService/Services/IOrderFulfilledProducer.cs
-- [ ] T009 [US1] Implement OrderFulfilledProducer in FulfillmentService/Services/OrderFulfilledProducer.cs (depends on T008)
-- [ ] T010 [US1] Integrate OrderFulfilledProducer into FulfillmentService/Program.cs (depends on T009)
-- [ ] T011 [US1] Implement IOrderFulfilledConsumer interface in OrderService/Services/IOrderFulfilledConsumer.cs
-- [ ] T012 [US1] Implement OrderFulfilledConsumer in OrderService/Services/OrderFulfilledConsumer.cs (depends on T011)
-- [ ] T013 [US1] Register OrderFulfilledConsumer as hosted service in OrderService/Program.cs (depends on T012)
-- [ ] T014 [US1] Add status update logic to OrderFulfilledConsumer for mapping FULFILLED status
+- [x] T006 [P] [US1] Create OrderFulfilled Avro generated class in Schemas/Generated/Schemas/OrderFulfilled.cs
+- [x] T007 [P] [US1] Create EventMetadata Avro generated class in Schemas/Generated/Schemas/EventMetadata.cs
+- [x] T008 [US1] Implement IOrderFulfilledProducer interface in FulfillmentService/Services/IOrderFulfilledProducer.cs
+- [x] T009 [US1] Implement OrderFulfilledProducer in FulfillmentService/Services/OrderFulfilledProducer.cs (depends on T008)
+- [x] T010 [US1] Integrate OrderFulfilledProducer into FulfillmentService/Program.cs (depends on T009)
+- [x] T011 [US1] Implement IOrderFulfilledConsumer interface in OrderService/Services/IOrderFulfilledConsumer.cs
+- [x] T012 [US1] Implement OrderFulfilledConsumer in OrderService/Services/OrderFulfilledConsumer.cs
+- [x] T013 [US1] Register OrderFulfilledConsumer as hosted service in OrderService/Program.cs (depends on T012)
+- [x] T014 [US1] Add status update logic to OrderFulfilledConsumer for mapping FULFILLED status
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
