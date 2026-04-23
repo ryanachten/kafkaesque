@@ -1,0 +1,19 @@
+{
+  "type": "record",
+  "name": "OrderFulfilled",
+  "namespace": "Schemas",
+  "fields": [
+    {
+      "name": "orderShortCode",
+      "type": "string"
+    },
+    {
+      "name": "customerId",
+      "type": "string"
+    },
+    {
+      "name": "fulfillmentTimestamp",
+      "type": "long"
+    }
+  ]
+}
