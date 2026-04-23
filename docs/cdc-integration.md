@@ -48,7 +48,17 @@ The Debezium PostgreSQL connector watches the WAL and streams changes to Kafka.
 
 ### 1. Database
 
-Run the migration to add fulfillment columns:
+PostgreSQL must have logical replication enabled:
+
+```sql
+ALTER SYSTEM SET wal_level = logical;
+SELECT pg_reload_conf();
+-- Verify:
+SHOW wal_level;
+-- Expected: logical
+```
+
+Then run the migration to add fulfillment columns:
 
 ```sql
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS fulfilled_at TIMESTAMPTZ;
@@ -83,27 +93,21 @@ docker-compose exec kafka kafka-console-consumer \
 
 ## CDC Event Format
 
-Each CDC event is a JSON object:
+The connector uses the `ExtractNewRecordState` transform, which unwraps the Debezium envelope and produces the flattened payload (the `after` row only):
 
 ```json
 {
-  "before": null,
-  "after": {
-    "order_short_code": "ABC1234567",
-    "status": "FULFILLED",
-    "fulfilled_at": "2026-04-22T10:30:00Z"
-  },
-  "op": "u",
-  "ts_ms": 1745318400000
+  "order_short_code": "ABC1234567",
+  "status": "FULFILLED",
+  "fulfilled_at": "2026-04-22T10:30:00Z"
 }
 ```
 
 | Field | Description |
-|-------|------------|
-| before | Previous row state (null for inserts) |
-| after | New row state |
-| op | Operation: c=create, u=update, d=delete |
-| ts_ms | Timestamp of the change |
+|-------|-------------|
+| order_short_code | Unique order identifier |
+| status | Order status (PENDING, FULFILLED, SHIPPED) |
+| fulfilled_at | Timestamp when fulfillment completed |
 
 ## Configuration Reference
 

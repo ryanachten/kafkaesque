@@ -7,6 +7,7 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS fulfilled_at TIMESTAMPTZ;
 
 -- Add status column to track order status
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS status VARCHAR(20) NOT NULL DEFAULT 'PENDING';
+ALTER TABLE orders ADD CONSTRAINT chk_orders_status CHECK (status IN ('PENDING', 'FULFILLED', 'SHIPPED'));
 
 -- Create index on status for efficient filtering
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);

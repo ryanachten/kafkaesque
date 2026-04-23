@@ -36,7 +36,7 @@ public class FulfillmentOrderRepository(IDbConnectionFactory connectionFactory) 
         }
 
         var currentStatus = existingOrder.status?.ToString();
-        if (currentStatus == OrderStatus.Fulfilled.ToString() || existingOrder.fulfilled_at != null)
+        if (currentStatus == OrderStatus.Fulfilled.ToDbString() || existingOrder.fulfilled_at != null)
         {
             return false;
         }
@@ -44,7 +44,7 @@ public class FulfillmentOrderRepository(IDbConnectionFactory connectionFactory) 
         var result = await connection.ExecuteAsync(
             new CommandDefinition(
                 UpdateFulfilledStatusSql,
-                new { OrderShortCode = orderShortCode, NewStatus = OrderStatus.Fulfilled.ToString() },
+                new { OrderShortCode = orderShortCode, NewStatus = OrderStatus.Fulfilled.ToDbString() },
                 cancellationToken: cancellationToken));
 
         return result > 0;

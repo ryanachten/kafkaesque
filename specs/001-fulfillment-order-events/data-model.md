@@ -31,26 +31,25 @@
 
 ## CDC Event (via Debezium)
 
-Debezium emits events to Kafka. No entity changes needed.
+Debezium emits events to Kafka with `ExtractNewRecordState` transform (flattened payload).
 
 ### CDC Topic
 
 `dbserver.public.orders`
 
-### CDC Envelope
+### CDC Payload (Flattened)
 
 | Field | Type | Description |
-|-------|------|------------|
-| before | object | Previous row state (null for inserts) |
-| after | object | New row state |
-| op | string | c=create, u=update, d=delete |
-| ts_ms | long | Timestamp of the change |
+|-------|------|-------------|
+| order_short_code | string | Unique order identifier |
+| status | string | PENDING, FULFILLED, or SHIPPED |
+| fulfilled_at | timestamp | When fulfillment completed (null for PENDING) |
 
 ---
 
 ## State Transitions
 
-```
+```text
 [PENDING] --fulfillment complete--> [FULFILLED]
 [FULFILLED] --------cannot fulfill again--------> (reject duplicate)
 ```

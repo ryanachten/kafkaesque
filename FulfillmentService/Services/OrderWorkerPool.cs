@@ -22,6 +22,16 @@ public sealed class OrderWorkerPool : BackgroundService, IOrderWorkerPool
         _logger = logger;
 
         var workerConfig = workerPoolOptions.Value;
+        if (workerConfig.WorkerCount <= 0)
+        {
+            throw new InvalidOperationException("WorkerPool:WorkerCount must be greater than 0.");
+        }
+
+        if (workerConfig.QueueCapacity <= 0)
+        {
+            throw new InvalidOperationException("WorkerPool:QueueCapacity must be greater than 0.");
+        }
+
         _workerCount = workerConfig.WorkerCount;
 
         _orderQueue = Channel.CreateBounded<Order>(new BoundedChannelOptions(workerConfig.QueueCapacity)

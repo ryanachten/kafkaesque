@@ -2,7 +2,7 @@
 
 ## Overview
 
-Order changes are captured via Debezium CDC and streamed to Kafka.
+Order changes are captured via Debezium CDC with `ExtractNewRecordState` transform and streamed to Kafka.
 
 ## Topic
 
@@ -23,24 +23,27 @@ Order changes are captured via Debezium CDC and streamed to Kafka.
     "table.include.list": "public.orders",
     "plugin.name": "pgoutput",
     "topic.prefix": "dbserver",
-    "schema.enable": "true"
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false",
+    "column.include.list": "public.orders:order_short_code,status,fulfilled_at",
+    "transforms": "unwrap",
+    "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+    "transforms.unwrap.drop.tombstones": "false"
   }
 }
 ```
 
-## Event Schema
+## Event Payload (Flattened)
+
+The `ExtractNewRecordState` transform unwraps the Debezium envelope, producing the `after` row only:
 
 ```json
 {
-  "type": "record",
-  "name": "Envelope",
-  "namespace": "dbserver.public.orders",
-  "fields": [
-    { "name": "before", "type": ["null", { "type": "record", "fields": [...] }], "default": null },
-    { "name": "after", "type": ["null", { "type": "record", "fields": [...] }], "default": null },
-    { "name": "op", "type": "string" },
-    { "name": "ts_ms", "type": "long" }
-  ]
+  "order_short_code": "ABC123DEF",
+  "status": "FULFILLED",
+  "fulfilled_at": "2026-04-22T10:30:00Z"
 }
 ```
 
@@ -50,24 +53,14 @@ Order changes are captured via Debezium CDC and streamed to Kafka.
 
 ```json
 {
-  "before": {
-    "order_short_code": "ABC123DEF",
-    "status": "PENDING",
-    "fulfilled_at": null
-  },
-  "after": {
-    "order_short_code": "ABC123DEF",
-    "status": "FULFILLED",
-    "fulfilled_at": "2026-04-22T10:30:00Z"
-  },
-  "op": "u",
-  "ts_ms": 1713781800000
+  "order_short_code": "ABC123DEF",
+  "status": "FULFILLED",
+  "fulfilled_at": "2026-04-22T10:30:00Z"
 }
 ```
 
 ## Consumer Expectations
 
 1. Subscribe to `dbserver.public.orders`
-2. Filter for `op: "u"` (updates only)
-3. Filter for `after.status: "FULFILLED"`
-4. Handle schema evolution (Debezium handles compatibility)
+2. Filter for `status: "FULFILLED"` (fulfillment events only)
+3. Handle schema evolution (Debezium handles compatibility)

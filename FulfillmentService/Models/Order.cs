@@ -13,14 +13,22 @@ public class Order
     public Order(OrderPlaced eventData)
     {
         OrderShortCode = eventData.OrderShortCode;
-        CustomerId = Guid.Parse(eventData.CustomerId);
+        if (!Guid.TryParse(eventData.CustomerId, out var customerId))
+        {
+            throw new ArgumentException("Invalid customer id.", nameof(eventData));
+        }
+        CustomerId = customerId;
         Status = OrderStatus.Pending;
         FulfilledAt = null;
 
-        Items = eventData.Items.Select(item => new OrderItem(
-            Guid.Parse(item.ProductId),
-            item.Count)
-        );
+        Items = eventData.Items.Select(item =>
+        {
+            if (!Guid.TryParse(item.ProductId, out var productId))
+            {
+                throw new ArgumentException("Invalid product id.", nameof(eventData));
+            }
+            return new OrderItem(productId, item.Count);
+        }).ToList();
     }
 
     public Order(string orderShortCode, Guid customerId, OrderStatus status, DateTime? fulfilledAt, IEnumerable<OrderItem> items)
