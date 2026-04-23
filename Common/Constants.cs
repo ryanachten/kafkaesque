@@ -1,4 +1,4 @@
-﻿namespace Common;
+namespace Common;
 
 public static class Constants
 {
@@ -8,5 +8,6 @@ public static class Constants
     public static class Topics
     {
         public static readonly string OrderPlaced = "order.placed";
+        public static readonly string OrderFulfilled = "order.fulfilled";
     }
 }
