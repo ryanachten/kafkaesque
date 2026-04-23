@@ -14,14 +14,15 @@ namespace OrderService.Services;
 public sealed class OrderFulfilledConsumer : IHostedService, IDisposable
 {
     private readonly IConsumer<string, OrderFulfilled> _consumer;
-    private readonly IOrderRepository _orderRepository;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly CachedSchemaRegistryClient _schemaRegistryClient;
     private readonly ILogger<OrderFulfilledConsumer> _logger;
     private readonly CancellationTokenSource _tokenSource;
     private Task? _executingTask;
 
     public OrderFulfilledConsumer(
         IOptions<KafkaConfiguration> kafkaOptions,
-        IOrderRepository orderRepository,
+        IServiceProvider serviceProvider,
         ILogger<OrderFulfilledConsumer> logger)
     {
         var kafkaConfig = kafkaOptions.Value;
@@ -40,15 +41,15 @@ public sealed class OrderFulfilledConsumer : IHostedService, IDisposable
             EnableAutoCommit = false
         };
 
-        var schemaRegistryClient = new CachedSchemaRegistryClient(schemaRegistryConfig);
+        _schemaRegistryClient = new CachedSchemaRegistryClient(schemaRegistryConfig);
 
         _consumer = new ConsumerBuilder<string, OrderFulfilled>(consumerConfig)
-            .SetValueDeserializer(new AvroDeserializer<OrderFulfilled>(schemaRegistryClient).AsSyncOverAsync())
+            .SetValueDeserializer(new AvroDeserializer<OrderFulfilled>(_schemaRegistryClient).AsSyncOverAsync())
             .Build();
 
         _consumer.Subscribe(Topics.OrderFulfilled);
 
-        _orderRepository = orderRepository;
+        _serviceProvider = serviceProvider;
         _logger = logger;
         _tokenSource = new CancellationTokenSource();
     }
@@ -61,10 +62,7 @@ public sealed class OrderFulfilledConsumer : IHostedService, IDisposable
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        if (_tokenSource is not null)
-        {
-            await _tokenSource.CancelAsync();
-        }
+        await _tokenSource.CancelAsync();
 
         if (_executingTask is not null)
         {
@@ -75,6 +73,7 @@ public sealed class OrderFulfilledConsumer : IHostedService, IDisposable
     public void Dispose()
     {
         _consumer.Dispose();
+        _schemaRegistryClient.Dispose();
         _tokenSource.Dispose();
     }
 
@@ -93,11 +92,14 @@ public sealed class OrderFulfilledConsumer : IHostedService, IDisposable
                         _logger.LogInformation(
                             "Received OrderFulfilled event for order {OrderShortCode}, EventId: {EventId}",
                             orderFulfilled.OrderShortCode,
-                            metadata?.EventId ?? Guid.Empty);
+                            metadata.EventId);
+
+                        using var scope = _serviceProvider.CreateScope();
+                        var orderRepository = scope.ServiceProvider.GetRequiredService<IOrderRepository>();
 
                         try
                         {
-                            await _orderRepository.UpdateStatus(orderFulfilled.OrderShortCode, OrderStatus.FULFILLED);
+                            await orderRepository.UpdateStatus(orderFulfilled.OrderShortCode, OrderStatus.FULFILLED);
                             _consumer.Commit(response);
                             _logger.LogInformation(
                                 "Updated order {OrderShortCode} to FULFILLED and committed offset",
