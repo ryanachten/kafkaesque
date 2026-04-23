@@ -56,22 +56,43 @@ public sealed class OrderWorkerPool : BackgroundService, IOrderWorkerPool
         await Task.WhenAll(_workerTasks);
     }
 
+    private const int MaxRetries = 3;
+
     private async Task ProcessOrders(int workerId, CancellationToken cancellationToken)
     {
         await foreach (var order in _orderQueue.Reader.ReadAllAsync(cancellationToken))
         {
-            try
+            var attempts = 0;
+            while (attempts < MaxRetries)
             {
-                _logger.LogInformation("Worker {WorkerId} processing order {OrderId}", workerId, order.OrderShortCode);
-                await _orderProcessingService.FulfillOrder(order, cancellationToken);
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Worker {WorkerId} failed to process order {OrderId}", workerId, order.OrderShortCode);
+                try
+                {
+                    _logger.LogInformation("Worker {WorkerId} processing order {OrderId}, attempt {Attempt}",
+                        workerId, order.OrderShortCode, attempts + 1);
+                    await _orderProcessingService.FulfillOrder(order, cancellationToken);
+                    break;
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    attempts++;
+                    _logger.LogWarning(ex,
+                        "Worker {WorkerId} failed to process order {OrderId}, attempt {Attempt}/{MaxRetries}",
+                        workerId, order.OrderShortCode, attempts, MaxRetries);
+
+                    if (attempts >= MaxRetries)
+                    {
+                        _logger.LogError(ex,
+                            "Worker {WorkerId} exhausted retries for order {OrderId}, message may be lost",
+                            workerId, order.OrderShortCode);
+                        throw;
+                    }
+
+                    await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempts)), cancellationToken);
+                }
             }
         }
     }
@@ -79,6 +100,8 @@ public sealed class OrderWorkerPool : BackgroundService, IOrderWorkerPool
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
         _orderQueue.Writer.Complete();
+        await _orderQueue.Reader.Completion;
+        await Task.WhenAll(_workerTasks);
         await base.StopAsync(cancellationToken);
     }
 }

@@ -11,7 +11,15 @@ public class DbConnectionFactory(IConfiguration configuration) : IDbConnectionFa
     public async Task<IDbConnection> CreateConnection(CancellationToken cancellationToken = default)
     {
         var connection = new NpgsqlConnection(_connectionString);
-        await connection.OpenAsync(cancellationToken);
-        return connection;
+        try
+        {
+            await connection.OpenAsync(cancellationToken);
+            return connection;
+        }
+        catch
+        {
+            connection.Dispose();
+            throw;
+        }
     }
 }
