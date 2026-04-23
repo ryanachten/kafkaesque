@@ -2,3 +2,12 @@ topics:
   - name: order.placed
     partitions: 3
     replication_factor: 1
+  - name: order.fulfilled
+    partitions: 3
+    replication_factor: 1
+  - name: fulfillment-service.dlq
+    partitions: 3
+    replication_factor: 1
+  - name: order-service.dlq
+    partitions: 3
+    replication_factor: 1
