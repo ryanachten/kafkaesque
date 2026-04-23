@@ -4,6 +4,7 @@ using OrderService.Configuration;
 using OrderService.Helpers;
 using OrderService.Models;
 using OrderService.Repositories;
+using Schemas;
 
 namespace OrderService.Services;
 
@@ -81,7 +82,12 @@ public sealed class OrderOutboxWorker(
             var producerEvent = OutboxEventSerializer.ToOrderPlaced(outboxEvent);
             if (producerEvent is null) continue;
 
-            var metadata = EventMetadata.FromOutboxEvent(outboxEvent);
+            var metadata = EventMetadata.FromValues(
+                    outboxEvent.Id,
+                    outboxEvent.EventVersion,
+                    outboxEvent.OccurredAt,
+                    outboxEvent.EntityName.ToString(),
+                    outboxEvent.EntityId);
 
             try
             {

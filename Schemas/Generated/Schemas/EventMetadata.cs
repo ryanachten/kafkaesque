@@ -1,8 +1,7 @@
 using Confluent.Kafka;
 
-namespace OrderService.Models;
+namespace Schemas;
 
-// TODO: we'll probably want to move this into the Commons project later for use in the Consumer
 public class EventMetadata
 {
     public required Guid EventId { get; init; }
@@ -23,21 +22,9 @@ public class EventMetadata
         };
     }
 
-    public static EventMetadata FromOutboxEvent(OutboxEvent outboxEvent)
+    public static EventMetadata FromKafkaHeaders(Headers? headers)
     {
-        return new EventMetadata
-        {
-            EventId = outboxEvent.Id,
-            EventVersion = outboxEvent.EventVersion,
-            OccurredAt = outboxEvent.OccurredAt,
-            EntityType = outboxEvent.EntityName.ToString(),
-            EntityId = outboxEvent.EntityId
-        };
-    }
-
-    public static EventMetadata? FromKafkaHeaders(Headers? headers)
-    {
-        if (headers is null) return null;
+        if (headers is null) return CreateDefault();
 
         var hasEventId = TryGetHeaderValue(headers, "event-id", out var eventId);
         var hasEventVersion = TryGetHeaderValue(headers, "event-version", out var eventVersion);
@@ -47,13 +34,37 @@ public class EventMetadata
 
         if (!hasEventId || !hasEventVersion || !hasOccurredAt ||
             !hasEntityType || !hasEntityId)
-            return null;
+            return CreateDefault();
 
         return new EventMetadata
         {
             EventId = Guid.Parse(eventId),
             EventVersion = int.Parse(eventVersion),
             OccurredAt = DateTime.Parse(occurredAt),
+            EntityType = entityType,
+            EntityId = entityId
+        };
+    }
+
+    private static EventMetadata CreateDefault()
+    {
+        return new EventMetadata
+        {
+            EventId = Guid.NewGuid(),
+            EventVersion = 1,
+            OccurredAt = DateTime.UtcNow,
+            EntityType = "Order",
+            EntityId = string.Empty
+        };
+    }
+
+    public static EventMetadata FromValues(Guid eventId, int eventVersion, DateTime occurredAt, string entityType, string entityId)
+    {
+        return new EventMetadata
+        {
+            EventId = eventId,
+            EventVersion = eventVersion,
+            OccurredAt = occurredAt,
             EntityType = entityType,
             EntityId = entityId
         };

@@ -6,14 +6,14 @@ using Common;
 using Microsoft.Extensions.Options;
 using Schemas;
 
-namespace OrderService.Services;
+namespace FulfillmentService.Services;
 
-public sealed class OrderProducer : IOrderProducer, IDisposable
+public sealed class OrderFulfilledProducer : IOrderFulfilledProducer, IDisposable
 {
-    private readonly IProducer<string, OrderPlaced> _producer;
-    private readonly ILogger<OrderProducer> _logger;
+    private readonly IProducer<string, OrderFulfilled> _producer;
+    private readonly ILogger<OrderFulfilledProducer> _logger;
 
-    public OrderProducer(IOptions<KafkaConfiguration> kafkaOptions, ILogger<OrderProducer> logger)
+    public OrderFulfilledProducer(IOptions<KafkaConfiguration> kafkaOptions, ILogger<OrderFulfilledProducer> logger)
     {
         var kafkaConfig = kafkaOptions.Value;
         var producerConfig = new ProducerConfig()
@@ -28,35 +28,35 @@ public sealed class OrderProducer : IOrderProducer, IDisposable
 
         var schemaRegistryClient = new CachedSchemaRegistryClient(schemaRegistryConfig);
 
-        // NOTE: AutoRegisterSchemas is disabled to avoid auto-generation issues.
-        // The schema must be registered in the Schema Registry first.
         var avroSerializerConfig = new AvroSerializerConfig
         {
             AutoRegisterSchemas = false,
             UseLatestVersion = true
         };
 
-        _producer = new ProducerBuilder<string, OrderPlaced>(producerConfig)
-            .SetValueSerializer(new AvroSerializer<OrderPlaced>(schemaRegistryClient, avroSerializerConfig))
+        _producer = new ProducerBuilder<string, OrderFulfilled>(producerConfig)
+            .SetValueSerializer(new AvroSerializer<OrderFulfilled>(schemaRegistryClient, avroSerializerConfig))
             .Build();
 
         _logger = logger;
     }
 
-    public async Task ProduceOrderPlacedEvent(OrderPlaced order, EventMetadata metadata)
+    public async Task ProduceOrderFulfilledEventAsync(OrderFulfilled order, EventMetadata metadata)
     {
         try
         {
-            await _producer.ProduceAsync(Topics.OrderPlaced, new Message<string, OrderPlaced>()
+            await _producer.ProduceAsync(Topics.OrderFulfilled, new Message<string, OrderFulfilled>()
             {
                 Key = order.OrderShortCode,
                 Value = order,
                 Headers = metadata.ToKafkaHeaders()
             });
+
+            _logger.LogInformation("Published OrderFulfilled event for order {OrderShortCode}", order.OrderShortCode);
         }
-        catch (ProduceException<string, OrderPlaced> ex)
+        catch (ProduceException<string, OrderFulfilled> ex)
         {
-            _logger.LogError("Failed to produce order: {Reason}", ex.Error.Reason);
+            _logger.LogError("Failed to produce OrderFulfilled event: {Reason}", ex.Error.Reason);
             throw;
         }
     }

@@ -45,6 +45,7 @@ builder.Services.AddScoped<IOutboxRepository, OutboxRepository>();
 builder.Services.AddSingleton<IOrderProducer, OrderProducer>();
 builder.Services.AddScoped<IOrderService, OrderService.Services.OrderService>();
 builder.Services.AddHostedService<OrderOutboxWorker>();
+builder.Services.AddHostedService<OrderFulfilledConsumer>();
 
 var app = builder.Build();
 

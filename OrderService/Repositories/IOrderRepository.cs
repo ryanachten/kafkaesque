@@ -5,4 +5,5 @@ namespace OrderService.Repositories;
 public interface IOrderRepository
 {
     Task<Order> Create(Order order);
+    Task UpdateStatus(string orderShortCode, OrderStatus status);
 }

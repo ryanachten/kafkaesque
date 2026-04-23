@@ -7,6 +7,7 @@ builder.Services.Configure<KafkaConfiguration>(
     builder.Configuration.GetRequiredSection(KafkaConfiguration.SectionName));
 
 builder.Services.AddHostedService<OrderConsumer>();
+builder.Services.AddSingleton<IOrderFulfilledProducer, OrderFulfilledProducer>();
 
 var app = builder.Build();
 
