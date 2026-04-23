@@ -20,6 +20,8 @@ builder.Services.AddHttpClient();
 
 builder.Services.Configure<KafkaConfiguration>(
     builder.Configuration.GetRequiredSection(KafkaConfiguration.SectionName));
+builder.Services.Configure<ConsumerRetryConfiguration>(
+    builder.Configuration.GetRequiredSection(ConsumerRetryConfiguration.SectionName));
 
 builder.Services.Configure<OutboxOptions>(
     builder.Configuration.GetRequiredSection(OutboxOptions.SectionName));
