@@ -12,10 +12,21 @@ namespace FulfillmentService.Services;
 public sealed class OrderConsumer : BackgroundService
 {
     private readonly IConsumer<string, OrderPlaced> _consumer;
+    private readonly IProducer<string, OrderPlaced> _deadLetterProducer;
+    private readonly CachedSchemaRegistryClient _schemaRegistryClient;
+    private readonly ConsumerRetryConfiguration _retryConfig;
+    private readonly KafkaConfiguration _kafkaConfig;
+    private readonly ILogger<OrderConsumer> _logger;
 
-    public OrderConsumer(IOptions<KafkaConfiguration> kafkaOptions)
+    public OrderConsumer(
+        IOptions<KafkaConfiguration> kafkaOptions,
+        IOptions<ConsumerRetryConfiguration> retryOptions,
+        ILogger<OrderConsumer> logger)
     {
-        var kafkaConfig = kafkaOptions.Value;
+        _kafkaConfig = kafkaOptions.Value;
+        _retryConfig = retryOptions.Value;
+        _logger = logger;
+
         var groupId = Environment.GetEnvironmentVariable("GROUP_ID");
         if (groupId == null || groupId == string.Empty)
         {
@@ -24,29 +35,51 @@ public sealed class OrderConsumer : BackgroundService
 
         var schemaRegistryConfig = new SchemaRegistryConfig()
         {
-            Url = kafkaConfig.SchemaRegistryUrl
+            Url = _kafkaConfig.SchemaRegistryUrl
         };
+
+        _schemaRegistryClient = new CachedSchemaRegistryClient(schemaRegistryConfig);
 
         var consumerConfig = new ConsumerConfig()
         {
             GroupId = groupId,
-            BootstrapServers = kafkaConfig.BootstrapServers,
+            BootstrapServers = _kafkaConfig.BootstrapServers,
             AutoOffsetReset = AutoOffsetReset.Earliest,
+            EnableAutoCommit = false,
+            MaxPollIntervalMs = _retryConfig.MaxPollIntervalMs
         };
 
-        var schemaRegistryClient = new CachedSchemaRegistryClient(schemaRegistryConfig);
-
-        // TODO: conduct deduplication of events on consumer
         _consumer = new ConsumerBuilder<string, OrderPlaced>(consumerConfig)
-            .SetValueDeserializer(new AvroDeserializer<OrderPlaced>(schemaRegistryClient).AsSyncOverAsync())
+            .SetValueDeserializer(new AvroDeserializer<OrderPlaced>(_schemaRegistryClient).AsSyncOverAsync())
+            .SetErrorHandler(OnErrorHandler)
+            .Build();
+
+        var producerConfig = new ProducerConfig()
+        {
+            BootstrapServers = _kafkaConfig.BootstrapServers,
+            Acks = Acks.All
+        };
+
+        _deadLetterProducer = new ProducerBuilder<string, OrderPlaced>(producerConfig)
+            .SetValueSerializer(new AvroSerializer<OrderPlaced>(_schemaRegistryClient))
             .Build();
 
         _consumer.Subscribe(Topics.OrderPlaced);
     }
 
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    private void OnErrorHandler(IClient client, Error error)
     {
-        Console.WriteLine("Messages will appear below:");
+        if (error.IsFatal)
+        {
+            _logger.LogCritical("Fatal consumer error: {Reason}", error.Reason);
+            return;
+        }
+        _logger.LogWarning("Consumer non-fatal error: {Reason}", error.Reason);
+    }
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        _logger.LogInformation("OrderConsumer started");
 
         try
         {
@@ -55,15 +88,28 @@ public sealed class OrderConsumer : BackgroundService
                 try
                 {
                     var response = _consumer.Consume(stoppingToken);
-                    if (response.Message != null)
+                    if (response?.Message?.Value is OrderPlaced orderPlaced)
                     {
-                        Console.WriteLine($"Received order with {response.Message.Value.Items.Count} items");
+                        var metadata = EventMetadata.FromKafkaHeaders(response.Message.Headers);
+                        _logger.LogInformation(
+                            "Received OrderPlaced event for order {OrderShortCode}, EventId: {EventId}",
+                            orderPlaced.OrderShortCode,
+                            metadata.EventId);
+
+                        var processedSuccessfully = await ProcessOrderWithRetry(orderPlaced, metadata, response);
+
+                        if (processedSuccessfully)
+                        {
+                            _consumer.Commit(response);
+                            _logger.LogInformation(
+                                "Processed order {OrderShortCode} and committed offset",
+                                orderPlaced.OrderShortCode);
+                        }
                     }
                 }
                 catch (ConsumeException ex)
                 {
-                    Console.WriteLine($"Exception consuming message {ex.Message}");
-                    throw;
+                    _logger.LogError("Error consuming message: {Message}", ex.Message);
                 }
             }
         }
@@ -71,13 +117,84 @@ public sealed class OrderConsumer : BackgroundService
         {
             _consumer.Close();
         }
+    }
 
-        return Task.CompletedTask;
+    private async Task<bool> ProcessOrderWithRetry(OrderPlaced order, EventMetadata metadata, ConsumeResult<string, OrderPlaced> response)
+    {
+        var retryCount = 0;
+        var delay = _retryConfig.InitialRetryDelayMs;
+
+        while (retryCount < _retryConfig.MaxRetryAttempts)
+        {
+            try
+            {
+                _logger.LogInformation("Processing order {OrderShortCode} with {ItemCount} items",
+                    order.OrderShortCode, order.Items.Count);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                retryCount++;
+                if (retryCount >= _retryConfig.MaxRetryAttempts)
+                {
+                    _logger.LogError(
+                        "Failed to process order {OrderShortCode} after {Attempts} attempts: {Ex}. Sending to dead-letter queue",
+                        order.OrderShortCode, retryCount, ex);
+                    await SendToDeadLetterQueue(order, metadata, ex, response);
+                    return false;
+                }
+
+                _logger.LogWarning(
+                    "Failed to process order {OrderShortCode} (attempt {Attempt}/{MaxAttempts}): {Ex}. Retrying in {DelayMs}ms",
+                    order.OrderShortCode, retryCount, _retryConfig.MaxRetryAttempts, ex, delay);
+                await Task.Delay(delay);
+                delay = (int)(delay * _retryConfig.BackoffMultiplier);
+                delay = Math.Min(delay, _retryConfig.MaxRetryDelayMs);
+            }
+        }
+
+        return false;
+    }
+
+    private async Task SendToDeadLetterQueue(OrderPlaced order, EventMetadata metadata, Exception exception, ConsumeResult<string, OrderPlaced> response)
+    {
+        try
+        {
+            var dlqMetadata = new DeadLetterMetadata(
+                Topics.OrderPlaced,
+                response.Partition.Value,
+                response.Offset.Value,
+                exception);
+
+            var headers = metadata.ToKafkaHeaders();
+            headers.AddDeadLetterHeaders(dlqMetadata);
+
+            await _deadLetterProducer.ProduceAsync(Constants.DeadLetterTopics.FulfillmentService, new Message<string, OrderPlaced>
+            {
+                Key = order.OrderShortCode,
+                Value = order,
+                Headers = headers
+            });
+
+            _logger.LogWarning(
+                "Sent order {OrderShortCode} to dead-letter queue at {DeadLetterTopic}",
+                order.OrderShortCode,
+                Constants.DeadLetterTopics.FulfillmentService);
+        }
+        catch (Exception dlqEx)
+        {
+            _logger.LogCritical(
+                "Failed to send order {OrderShortCode} to dead-letter queue: {Ex}",
+                order.OrderShortCode,
+                dlqEx);
+        }
     }
 
     public override void Dispose()
     {
         _consumer.Dispose();
+        _deadLetterProducer.Dispose();
+        _schemaRegistryClient.Dispose();
         base.Dispose();
     }
 }

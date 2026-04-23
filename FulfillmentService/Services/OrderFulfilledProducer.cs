@@ -13,18 +13,28 @@ public sealed class OrderFulfilledProducer : IOrderFulfilledProducer, IDisposabl
     private readonly IProducer<string, OrderFulfilled> _producer;
     private readonly CachedSchemaRegistryClient _schemaRegistryClient;
     private readonly ILogger<OrderFulfilledProducer> _logger;
+    private readonly KafkaRetryConfiguration _retryConfig;
+    private readonly KafkaConfiguration _kafkaConfig;
 
-    public OrderFulfilledProducer(IOptions<KafkaConfiguration> kafkaOptions, ILogger<OrderFulfilledProducer> logger)
+    public OrderFulfilledProducer(
+        IOptions<KafkaConfiguration> kafkaOptions,
+        IOptions<KafkaRetryConfiguration> retryOptions,
+        ILogger<OrderFulfilledProducer> logger)
     {
-        var kafkaConfig = kafkaOptions.Value;
+        _kafkaConfig = kafkaOptions.Value;
+        _retryConfig = retryOptions.Value;
+        _logger = logger;
+
         var producerConfig = new ProducerConfig()
         {
-            BootstrapServers = kafkaConfig.BootstrapServers,
+            BootstrapServers = _kafkaConfig.BootstrapServers,
+            MessageTimeoutMs = _retryConfig.MessageTimeoutMs,
+            Acks = Enum.Parse<Acks>(_retryConfig.Acks)
         };
 
         var schemaRegistryConfig = new SchemaRegistryConfig()
         {
-            Url = kafkaConfig.SchemaRegistryUrl
+            Url = _kafkaConfig.SchemaRegistryUrl
         };
 
         _schemaRegistryClient = new CachedSchemaRegistryClient(schemaRegistryConfig);
@@ -37,29 +47,65 @@ public sealed class OrderFulfilledProducer : IOrderFulfilledProducer, IDisposabl
 
         _producer = new ProducerBuilder<string, OrderFulfilled>(producerConfig)
             .SetValueSerializer(new AvroSerializer<OrderFulfilled>(_schemaRegistryClient, avroSerializerConfig))
+            .SetErrorHandler(OnErrorHandler)
             .Build();
+    }
 
-        _logger = logger;
+    private void OnErrorHandler(IClient client, Error error)
+    {
+        if (error.IsFatal)
+        {
+            _logger.LogCritical("Fatal producer error: {Reason}", error.Reason);
+            return;
+        }
+        _logger.LogWarning("Producer non-fatal error: {Reason}", error.Reason);
     }
 
     public async Task ProduceOrderFulfilledEvent(OrderFulfilled order, EventMetadata metadata)
     {
-        try
-        {
-            await _producer.ProduceAsync(Topics.OrderFulfilled, new Message<string, OrderFulfilled>()
-            {
-                Key = order.OrderShortCode,
-                Value = order,
-                Headers = metadata.ToKafkaHeaders()
-            });
+        var retryCount = 0;
+        var delay = _retryConfig.InitialRetryDelayMs;
 
-            _logger.LogInformation("Published OrderFulfilled event for order {OrderShortCode}", order.OrderShortCode);
-        }
-        catch (ProduceException<string, OrderFulfilled> ex)
+        while (true)
         {
-            _logger.LogError("Failed to produce OrderFulfilled event: {Reason}", ex.Error.Reason);
-            throw;
+            try
+            {
+                await _producer.ProduceAsync(Topics.OrderFulfilled, new Message<string, OrderFulfilled>()
+                {
+                    Key = order.OrderShortCode,
+                    Value = order,
+                    Headers = metadata.ToKafkaHeaders()
+                });
+
+                _logger.LogInformation("Published OrderFulfilled event for order {OrderShortCode}", order.OrderShortCode);
+                return;
+            }
+            catch (ProduceException<string, OrderFulfilled> ex) when (IsTransientError(ex) && retryCount < _retryConfig.MaxRetryAttempts)
+            {
+                retryCount++;
+                _logger.LogWarning(
+                    "Transient error publishing OrderFulfilled event (attempt {Attempt}/{MaxAttempts}): {Reason}. Retrying in {DelayMs}ms",
+                    retryCount, _retryConfig.MaxRetryAttempts, ex.Error.Reason, delay);
+
+                await Task.Delay(delay);
+                delay = (int)(delay * _retryConfig.BackoffMultiplier);
+                delay = Math.Min(delay, _retryConfig.MaxRetryDelayMs);
+            }
+            catch (ProduceException<string, OrderFulfilled> ex)
+            {
+                _logger.LogError("Failed to produce OrderFulfilled event after {Attempts} attempts: {Reason}",
+                    retryCount, ex.Error.Reason);
+                throw;
+            }
         }
+    }
+
+    private static bool IsTransientError(ProduceException<string, OrderFulfilled> ex)
+    {
+        return ex.Error.IsFatal == false &&
+               (ex.Error.Code == ErrorCode.Local_Transport ||
+                ex.Error.Code == ErrorCode.Local_AllBrokersDown ||
+                ex.Error.Code == ErrorCode.UnknownTopicOrPart);
     }
 
     public void Dispose()

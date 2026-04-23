@@ -66,12 +66,19 @@
 
 ### Implementation for User Story 2
 
-- [ ] T015 [P] [US2] Add retry logic with exponential backoff in OrderFulfilledProducer
-- [ ] T016 [P] [US2] Add error handling callbacks in OrderFulfilledProducer
-- [ ] T017 [US2] Add dead-letter handling in OrderFulfilledConsumer for failed events (depends on T012)
-- [ ] T018 [US2] Configure manual offset commit in OrderFulfilledConsumer (depends on T012)
+- [x] T015 [P] [US2] Add retry logic with exponential backoff in OrderFulfilledProducer
+- [x] T016 [P] [US2] Add error handling callbacks in OrderFulfilledProducer
+- [x] T017 [US2] Add dead-letter handling in OrderFulfilledConsumer for failed events (depends on T012)
+- [x] T018 [US2] Configure manual offset commit in OrderFulfilledConsumer (depends on T012)
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work reliably
+
+### Common DLQ Infrastructure (Shared)
+
+- [x] T025 [P] [US2] Create DeadLetterExtensions in Common for shared DLQ header handling
+- [x] T026 [P] [US2] Add per-service DLQ topic constants in Constants.cs
+- [x] T027 [P] [US2] Add DLQ support to FulfillmentService OrderConsumer
+- [x] T028 [US2] Refactor OrderService consumer to use shared DLQ pattern
 
 ---
 
