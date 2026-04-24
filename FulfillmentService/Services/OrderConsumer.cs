@@ -132,6 +132,10 @@ public sealed class OrderConsumer : BackgroundService
                     order.OrderShortCode, order.Items.Count);
                 return true;
             }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
                 retryCount++;
