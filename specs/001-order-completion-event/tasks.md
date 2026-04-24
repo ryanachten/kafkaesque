@@ -19,7 +19,7 @@
 
 **Purpose**: Configure Kafka topics and register schemas
 
-- [ ] T001 [P] Create `order.fulfilled` topic in Kafka brokers
+- [x] T001 [P] Create `order.fulfilled` topic in Kafka brokers
 - [x] T002 [P] Register OrderFulfilled schema in Schema Registry
 
 ---
