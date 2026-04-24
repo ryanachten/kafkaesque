@@ -29,7 +29,7 @@ public sealed class OrderFulfilledProducer : IOrderFulfilledProducer, IDisposabl
         {
             BootstrapServers = _kafkaConfig.BootstrapServers,
             MessageTimeoutMs = _retryConfig.MessageTimeoutMs,
-            Acks = Enum.Parse<Acks>(_retryConfig.Acks)
+            Acks = Enum.Parse<Acks>(_retryConfig.Acks, ignoreCase: true)
         };
 
         var schemaRegistryConfig = new SchemaRegistryConfig()

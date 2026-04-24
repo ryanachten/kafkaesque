@@ -60,8 +60,14 @@ public sealed class OrderFulfilledConsumer : IHostedService, IDisposable
             Acks = Acks.All
         };
 
+        var avroSerializerConfig = new AvroSerializerConfig
+        {
+            AutoRegisterSchemas = false,
+            UseLatestVersion = true
+        };
+
         _deadLetterProducer = new ProducerBuilder<string, OrderFulfilled>(producerConfig)
-            .SetValueSerializer(new AvroSerializer<OrderFulfilled>(_schemaRegistryClient))
+            .SetValueSerializer(new AvroSerializer<OrderFulfilled>(_schemaRegistryClient, avroSerializerConfig))
             .Build();
 
         _consumer.Subscribe(Topics.OrderFulfilled);
