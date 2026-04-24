@@ -59,8 +59,6 @@ services:
       - GROUP_ID=test-1
     ports:
       - "5054:8080"
-    volumes:
-      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
     depends_on:
       schema-register:
         condition: service_completed_successfully
@@ -79,8 +77,6 @@ services:
       - ConnectionStrings__OrdersDatabase=Host=postgres;Port=5432;Database=orders;Username=postgres;Password=postgres
     ports:
       - "5295:8080"
-    volumes:
-      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
     depends_on:
       postgres:
         condition: service_healthy

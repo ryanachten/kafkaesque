@@ -13,6 +13,7 @@ public sealed class OrderConsumer : BackgroundService
 {
     private readonly IConsumer<string, OrderPlaced> _consumer;
     private readonly IProducer<string, OrderPlaced> _deadLetterProducer;
+    private readonly IOrderFulfilledProducer _fulfilledProducer;
     private readonly CachedSchemaRegistryClient _schemaRegistryClient;
     private readonly ConsumerRetryConfiguration _retryConfig;
     private readonly KafkaConfiguration _kafkaConfig;
@@ -21,10 +22,12 @@ public sealed class OrderConsumer : BackgroundService
     public OrderConsumer(
         IOptions<KafkaConfiguration> kafkaOptions,
         IOptions<ConsumerRetryConfiguration> retryOptions,
+        IOrderFulfilledProducer fulfilledProducer,
         ILogger<OrderConsumer> logger)
     {
         _kafkaConfig = kafkaOptions.Value;
         _retryConfig = retryOptions.Value;
+        _fulfilledProducer = fulfilledProducer;
         _logger = logger;
 
         var groupId = Environment.GetEnvironmentVariable("GROUP_ID");
@@ -101,6 +104,7 @@ public sealed class OrderConsumer : BackgroundService
                         if (processedSuccessfully)
                         {
                             _consumer.Commit(response);
+                            await PublishOrderFulfilledEvent(orderPlaced, metadata);
                             _logger.LogInformation(
                                 "Processed order {OrderShortCode} and committed offset",
                                 orderPlaced.OrderShortCode);
@@ -158,6 +162,34 @@ public sealed class OrderConsumer : BackgroundService
         }
 
         return false;
+    }
+
+    private async Task PublishOrderFulfilledEvent(OrderPlaced order, EventMetadata originalMetadata)
+    {
+        var fulfilledOrder = new OrderFulfilled
+        {
+            OrderShortCode = order.OrderShortCode,
+            CustomerId = order.CustomerId,
+            FulfillmentTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+        };
+
+        var metadata = EventMetadata.FromValues(
+            Guid.NewGuid(),
+            1,
+            DateTime.UtcNow,
+            "Order",
+            order.OrderShortCode);
+
+        try
+        {
+            await _fulfilledProducer.ProduceOrderFulfilledEvent(fulfilledOrder, metadata);
+            _logger.LogInformation("Published OrderFulfilled event for order {OrderShortCode}", order.OrderShortCode);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Failed to publish OrderFulfilled event for order {OrderShortCode}: {Ex}",
+                order.OrderShortCode, ex);
+        }
     }
 
     private async Task SendToDeadLetterQueue(OrderPlaced order, EventMetadata metadata, Exception exception, ConsumeResult<string, OrderPlaced> response)
