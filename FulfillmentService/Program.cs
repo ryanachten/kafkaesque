@@ -12,6 +12,7 @@ builder.Services.Configure<ConsumerRetryConfiguration>(
 
 builder.Services.AddHostedService<OrderConsumer>();
 builder.Services.AddSingleton<IOrderFulfilledProducer, OrderFulfilledProducer>();
+builder.Services.AddSingleton<IOrderFulfillmentService, OrderFulfillmentService>();
 
 var app = builder.Build();
 

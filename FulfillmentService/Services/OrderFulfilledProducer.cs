@@ -61,7 +61,7 @@ public sealed class OrderFulfilledProducer : IOrderFulfilledProducer, IDisposabl
         _logger.LogWarning("Producer non-fatal error: {Reason}", error.Reason);
     }
 
-    public async Task ProduceOrderFulfilledEvent(OrderFulfilled order, EventMetadata metadata)
+    public async Task ProduceOrderFulfilled(OrderFulfilled order, EventMetadata metadata)
     {
         var retryCount = 0;
         var delay = _retryConfig.InitialRetryDelayMs;

@@ -13,21 +13,18 @@ public sealed class OrderConsumer : BackgroundService
 {
     private readonly IConsumer<string, OrderPlaced> _consumer;
     private readonly IProducer<string, OrderPlaced> _deadLetterProducer;
-    private readonly IOrderFulfilledProducer _fulfilledProducer;
+    private readonly IOrderFulfillmentService _fulfillmentService;
     private readonly CachedSchemaRegistryClient _schemaRegistryClient;
-    private readonly ConsumerRetryConfiguration _retryConfig;
     private readonly KafkaConfiguration _kafkaConfig;
     private readonly ILogger<OrderConsumer> _logger;
 
     public OrderConsumer(
         IOptions<KafkaConfiguration> kafkaOptions,
-        IOptions<ConsumerRetryConfiguration> retryOptions,
-        IOrderFulfilledProducer fulfilledProducer,
+        IOrderFulfillmentService fulfillmentService,
         ILogger<OrderConsumer> logger)
     {
         _kafkaConfig = kafkaOptions.Value;
-        _retryConfig = retryOptions.Value;
-        _fulfilledProducer = fulfilledProducer;
+        _fulfillmentService = fulfillmentService;
         _logger = logger;
 
         var groupId = Environment.GetEnvironmentVariable("GROUP_ID");
@@ -48,8 +45,7 @@ public sealed class OrderConsumer : BackgroundService
             GroupId = groupId,
             BootstrapServers = _kafkaConfig.BootstrapServers,
             AutoOffsetReset = AutoOffsetReset.Earliest,
-            EnableAutoCommit = false,
-            MaxPollIntervalMs = _retryConfig.MaxPollIntervalMs
+            EnableAutoCommit = false
         };
 
         _consumer = new ConsumerBuilder<string, OrderPlaced>(consumerConfig)
@@ -99,15 +95,18 @@ public sealed class OrderConsumer : BackgroundService
                             orderPlaced.OrderShortCode,
                             metadata.EventId);
 
-                        var processedSuccessfully = await ProcessOrderWithRetry(orderPlaced, metadata, response);
+                        var result = await _fulfillmentService.ProcessOrder(orderPlaced, metadata, stoppingToken);
 
-                        if (processedSuccessfully)
+                        if (result.Success)
                         {
                             _consumer.Commit(response);
-                            await PublishOrderFulfilledEvent(orderPlaced, metadata);
                             _logger.LogInformation(
                                 "Processed order {OrderShortCode} and committed offset",
                                 orderPlaced.OrderShortCode);
+                        }
+                        else if (result.Error != null)
+                        {
+                            await SendToDeadLetterQueue(orderPlaced, metadata, result.Error, response);
                         }
                     }
                 }
@@ -120,75 +119,6 @@ public sealed class OrderConsumer : BackgroundService
         finally
         {
             _consumer.Close();
-        }
-    }
-
-    private async Task<bool> ProcessOrderWithRetry(OrderPlaced order, EventMetadata metadata, ConsumeResult<string, OrderPlaced> response)
-    {
-        var retryCount = 0;
-        var delay = _retryConfig.InitialRetryDelayMs;
-
-        while (retryCount < _retryConfig.MaxRetryAttempts)
-        {
-            try
-            {
-                _logger.LogInformation("Processing order {OrderShortCode} with {ItemCount} items",
-                    order.OrderShortCode, order.Items.Count);
-                return true;
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                retryCount++;
-                if (retryCount >= _retryConfig.MaxRetryAttempts)
-                {
-                    _logger.LogError(
-                        "Failed to process order {OrderShortCode} after {Attempts} attempts: {Ex}. Sending to dead-letter queue",
-                        order.OrderShortCode, retryCount, ex);
-                    await SendToDeadLetterQueue(order, metadata, ex, response);
-                    return false;
-                }
-
-                _logger.LogWarning(
-                    "Failed to process order {OrderShortCode} (attempt {Attempt}/{MaxAttempts}): {Ex}. Retrying in {DelayMs}ms",
-                    order.OrderShortCode, retryCount, _retryConfig.MaxRetryAttempts, ex, delay);
-                await Task.Delay(delay);
-                delay = (int)(delay * _retryConfig.BackoffMultiplier);
-                delay = Math.Min(delay, _retryConfig.MaxRetryDelayMs);
-            }
-        }
-
-        return false;
-    }
-
-    private async Task PublishOrderFulfilledEvent(OrderPlaced order, EventMetadata originalMetadata)
-    {
-        var fulfilledOrder = new OrderFulfilled
-        {
-            OrderShortCode = order.OrderShortCode,
-            CustomerId = order.CustomerId,
-            FulfillmentTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
-        };
-
-        var metadata = EventMetadata.FromValues(
-            Guid.NewGuid(),
-            1,
-            DateTime.UtcNow,
-            "Order",
-            order.OrderShortCode);
-
-        try
-        {
-            await _fulfilledProducer.ProduceOrderFulfilledEvent(fulfilledOrder, metadata);
-            _logger.LogInformation("Published OrderFulfilled event for order {OrderShortCode}", order.OrderShortCode);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError("Failed to publish OrderFulfilled event for order {OrderShortCode}: {Ex}",
-                order.OrderShortCode, ex);
         }
     }
 

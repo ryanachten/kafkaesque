@@ -4,5 +4,5 @@ namespace FulfillmentService.Services;
 
 public interface IOrderFulfilledProducer
 {
-    Task ProduceOrderFulfilledEvent(OrderFulfilled order, EventMetadata metadata);
+    Task ProduceOrderFulfilled(OrderFulfilled order, EventMetadata metadata);
 }
