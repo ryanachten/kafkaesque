@@ -21,6 +21,9 @@ public class OrderRepository(IDbConnectionFactory connectionFactory, IOutboxRepo
         SET status = @Status, updated_at = NOW()
         WHERE order_short_code = @OrderShortCode";
 
+    private const string IsStatusSql = @"
+        SELECT EXISTS(SELECT 1 FROM orders WHERE order_short_code = @OrderShortCode AND status = @Status)";
+
     public async Task<Order> Create(Order order)
     {
         using var connection = await connectionFactory.CreateConnection();
@@ -63,5 +66,11 @@ public class OrderRepository(IDbConnectionFactory connectionFactory, IOutboxRepo
         {
             throw new InvalidOperationException($"No order found with order_short_code: {orderShortCode}");
         }
+    }
+
+    public async Task<bool> IsStatus(string orderShortCode, OrderStatus status)
+    {
+        using var connection = await connectionFactory.CreateConnection();
+        return await connection.QuerySingleAsync<bool>(IsStatusSql, new { OrderShortCode = orderShortCode, Status = status.ToString() });
     }
 }

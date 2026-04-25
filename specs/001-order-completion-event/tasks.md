@@ -90,8 +90,8 @@
 
 ### Implementation for User Story 3
 
-- [ ] T019 [P] [US3] Configure consumer group in OrderFulfilledConsumer
-- [ ] T020 [US3] Add idempotency check in OrderFulfilledConsumer to skip already-processed events (depends on T012)
+- [x] T019 [P] [US3] Configure consumer group in OrderFulfilledConsumer
+- [x] T020 [US3] Add idempotency check in OrderFulfilledConsumer to skip already-processed events (depends on T012)
 
 **Checkpoint**: All user stories should now be independently functional
 

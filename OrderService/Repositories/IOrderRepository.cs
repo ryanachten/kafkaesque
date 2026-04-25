@@ -6,4 +6,5 @@ public interface IOrderRepository
 {
     Task<Order> Create(Order order);
     Task UpdateStatus(string orderShortCode, OrderStatus status);
+    Task<bool> IsStatus(string orderShortCode, OrderStatus status);
 }

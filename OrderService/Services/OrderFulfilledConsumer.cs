@@ -143,6 +143,28 @@ public sealed class OrderFulfilledConsumer : IHostedService, IDisposable
                         using var scope = _serviceProvider.CreateScope();
                         var orderRepository = scope.ServiceProvider.GetRequiredService<IOrderRepository>();
 
+                        var alreadyProcessed = false;
+                        try
+                        {
+                            alreadyProcessed = await orderRepository.IsStatus(orderFulfilled.OrderShortCode, OrderStatus.FULFILLED);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(
+                                "Failed to check order {OrderShortCode} status: {Ex}. Proceeding with normal processing",
+                                orderFulfilled.OrderShortCode,
+                                ex);
+                        }
+
+                        if (alreadyProcessed)
+                        {
+                            _consumer.Commit(response);
+                            _logger.LogInformation(
+                                "Order {OrderShortCode} already FULFILLED, skipping duplicate",
+                                orderFulfilled.OrderShortCode);
+                            continue;
+                        }
+
                         var retryCount = 0;
                         var delay = _retryConfig.InitialRetryDelayMs;
                         var processedSuccessfully = false;
