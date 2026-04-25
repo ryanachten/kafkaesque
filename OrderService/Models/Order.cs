@@ -17,7 +17,7 @@ public class Order
         Items = dto.Items.Select(item => new OrderItem(item.ProductId, item.Count));
     }
 
-    public string OrderShortCode { get; private set; }
+    public string OrderShortCode { get; set; }
     public Guid CustomerId { get; set; }
     public IEnumerable<OrderItem> Items { get; set; } = [];
     public OrderStatus Status { get; set; } = OrderStatus.PENDING;
