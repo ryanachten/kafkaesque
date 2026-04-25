@@ -13,10 +13,10 @@ namespace OrderService.Services;
 
 public sealed class OrderFulfilledConsumer : IHostedService, IDisposable
 {
-    private readonly IConsumer<string, OrderFulfilled> _consumer;
-    private readonly IProducer<string, OrderFulfilled> _deadLetterProducer;
+    private IConsumer<string, OrderFulfilled>? _consumer;
+    private IProducer<string, OrderFulfilled>? _deadLetterProducer;
     private readonly IServiceProvider _serviceProvider;
-    private readonly CachedSchemaRegistryClient _schemaRegistryClient;
+    private CachedSchemaRegistryClient? _schemaRegistryClient;
     private readonly ILogger<OrderFulfilledConsumer> _logger;
     private readonly CancellationTokenSource _tokenSource;
     private readonly ConsumerRetryConfiguration _retryConfig;
@@ -31,50 +31,64 @@ public sealed class OrderFulfilledConsumer : IHostedService, IDisposable
     {
         _kafkaConfig = kafkaOptions.Value;
         _retryConfig = retryOptions.Value;
-        var groupId = "order-service-fulfilled-consumer";
-
-        var schemaRegistryConfig = new SchemaRegistryConfig()
-        {
-            Url = _kafkaConfig.SchemaRegistryUrl
-        };
-
-        var consumerConfig = new ConsumerConfig()
-        {
-            GroupId = groupId,
-            BootstrapServers = _kafkaConfig.BootstrapServers,
-            AutoOffsetReset = AutoOffsetReset.Earliest,
-            EnableAutoCommit = false,
-            MaxPollIntervalMs = _retryConfig.MaxPollIntervalMs
-        };
-
-        _schemaRegistryClient = new CachedSchemaRegistryClient(schemaRegistryConfig);
-
-        _consumer = new ConsumerBuilder<string, OrderFulfilled>(consumerConfig)
-            .SetValueDeserializer(new AvroDeserializer<OrderFulfilled>(_schemaRegistryClient).AsSyncOverAsync())
-            .SetErrorHandler(OnErrorHandler)
-            .Build();
-
-        var producerConfig = new ProducerConfig()
-        {
-            BootstrapServers = _kafkaConfig.BootstrapServers,
-            Acks = Acks.All
-        };
-
-        var avroSerializerConfig = new AvroSerializerConfig
-        {
-            AutoRegisterSchemas = false,
-            UseLatestVersion = true
-        };
-
-        _deadLetterProducer = new ProducerBuilder<string, OrderFulfilled>(producerConfig)
-            .SetValueSerializer(new AvroSerializer<OrderFulfilled>(_schemaRegistryClient, avroSerializerConfig))
-            .Build();
-
-        _consumer.Subscribe(Topics.OrderFulfilled);
-
         _serviceProvider = serviceProvider;
         _logger = logger;
         _tokenSource = new CancellationTokenSource();
+    }
+
+    public Task StartAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var schemaRegistryConfig = new SchemaRegistryConfig
+            {
+                Url = _kafkaConfig.SchemaRegistryUrl
+            };
+
+            _schemaRegistryClient = new CachedSchemaRegistryClient(schemaRegistryConfig);
+
+            var consumerConfig = new ConsumerConfig
+            {
+                GroupId = "order-service-fulfilled-consumer",
+                BootstrapServers = _kafkaConfig.BootstrapServers,
+                AutoOffsetReset = AutoOffsetReset.Earliest,
+                EnableAutoCommit = false,
+                MaxPollIntervalMs = _retryConfig.MaxPollIntervalMs
+            };
+
+            _consumer = new ConsumerBuilder<string, OrderFulfilled>(consumerConfig)
+                .SetValueDeserializer(new AvroDeserializer<OrderFulfilled>(_schemaRegistryClient).AsSyncOverAsync())
+                .SetErrorHandler(OnErrorHandler)
+                .Build();
+
+            var producerConfig = new ProducerConfig
+            {
+                BootstrapServers = _kafkaConfig.BootstrapServers,
+                Acks = Acks.All
+            };
+
+            var avroSerializerConfig = new AvroSerializerConfig
+            {
+                AutoRegisterSchemas = false,
+                UseLatestVersion = true
+            };
+
+            _deadLetterProducer = new ProducerBuilder<string, OrderFulfilled>(producerConfig)
+                .SetValueSerializer(new AvroSerializer<OrderFulfilled>(_schemaRegistryClient, avroSerializerConfig))
+                .Build();
+
+            _consumer.Subscribe(Topics.OrderFulfilled);
+
+            _executingTask = ExecuteAsync(_tokenSource.Token);
+
+            _logger.LogInformation("OrderFulfilledConsumer started successfully");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Failed to start OrderFulfilledConsumer: {Ex}", ex);
+        }
+
+        return Task.CompletedTask;
     }
 
     private void OnErrorHandler(IClient client, Error error)
@@ -87,15 +101,10 @@ public sealed class OrderFulfilledConsumer : IHostedService, IDisposable
         _logger.LogWarning("Consumer non-fatal error: {Reason}", error.Reason);
     }
 
-    public Task StartAsync(CancellationToken cancellationToken)
-    {
-        _executingTask = ExecuteAsync(_tokenSource.Token);
-        return Task.CompletedTask;
-    }
-
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        await _tokenSource.CancelAsync();
+        if (_tokenSource is not null)
+            await _tokenSource.CancelAsync();
 
         if (_executingTask is not null)
         {
@@ -105,14 +114,16 @@ public sealed class OrderFulfilledConsumer : IHostedService, IDisposable
 
     public void Dispose()
     {
-        _consumer.Dispose();
-        _deadLetterProducer.Dispose();
-        _schemaRegistryClient.Dispose();
-        _tokenSource.Dispose();
+        _consumer?.Dispose();
+        _deadLetterProducer?.Dispose();
+        _schemaRegistryClient?.Dispose();
+        _tokenSource?.Dispose();
     }
 
     private async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        if (_consumer is null) return;
+
         try
         {
             while (!stoppingToken.IsCancellationRequested)
@@ -190,12 +201,14 @@ public sealed class OrderFulfilledConsumer : IHostedService, IDisposable
         }
         finally
         {
-            _consumer.Close();
+            _consumer?.Close();
         }
     }
 
     private async Task SendToDeadLetterQueue(OrderFulfilled order, EventMetadata metadata, Exception exception, ConsumeResult<string, OrderFulfilled> response)
     {
+        if (_deadLetterProducer is null) return;
+
         try
         {
             var dlqMetadata = new DeadLetterMetadata(
