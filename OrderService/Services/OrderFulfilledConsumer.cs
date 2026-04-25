@@ -143,6 +143,16 @@ public sealed class OrderFulfilledConsumer : IHostedService, IDisposable
                         using var scope = _serviceProvider.CreateScope();
                         var orderRepository = scope.ServiceProvider.GetRequiredService<IOrderRepository>();
 
+                        var alreadyProcessed = await orderRepository.IsStatus(orderFulfilled.OrderShortCode, OrderStatus.FULFILLED);
+                        if (alreadyProcessed)
+                        {
+                            _consumer.Commit(response);
+                            _logger.LogInformation(
+                                "Order {OrderShortCode} already FULFILLED, skipping duplicate",
+                                orderFulfilled.OrderShortCode);
+                            continue;
+                        }
+
                         var retryCount = 0;
                         var delay = _retryConfig.InitialRetryDelayMs;
                         var processedSuccessfully = false;
