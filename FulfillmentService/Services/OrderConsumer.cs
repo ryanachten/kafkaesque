@@ -59,8 +59,15 @@ public sealed class OrderConsumer : BackgroundService
             Acks = Acks.All
         };
 
+        var avroSerializerConfig = new AvroSerializerConfig
+        {
+            AutoRegisterSchemas = false,
+            UseLatestVersion = true,
+            SubjectNameStrategy = SubjectNameStrategy.Record
+        };
+
         _deadLetterProducer = new ProducerBuilder<string, OrderPlaced>(producerConfig)
-            .SetValueSerializer(new AvroSerializer<OrderPlaced>(_schemaRegistryClient))
+            .SetValueSerializer(new AvroSerializer<OrderPlaced>(_schemaRegistryClient, avroSerializerConfig))
             .Build();
 
         _consumer.Subscribe(Topics.OrderPlaced);

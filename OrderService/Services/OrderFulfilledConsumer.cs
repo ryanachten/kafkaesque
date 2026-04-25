@@ -70,7 +70,8 @@ public sealed class OrderFulfilledConsumer : IHostedService, IDisposable
             var avroSerializerConfig = new AvroSerializerConfig
             {
                 AutoRegisterSchemas = false,
-                UseLatestVersion = true
+                UseLatestVersion = true,
+                SubjectNameStrategy = SubjectNameStrategy.Record
             };
 
             _deadLetterProducer = new ProducerBuilder<string, OrderFulfilled>(producerConfig)
