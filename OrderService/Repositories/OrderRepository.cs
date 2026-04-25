@@ -58,6 +58,10 @@ public class OrderRepository(IDbConnectionFactory connectionFactory, IOutboxRepo
     public async Task UpdateStatus(string orderShortCode, OrderStatus status)
     {
         using var connection = await connectionFactory.CreateConnection();
-        await connection.ExecuteAsync(UpdateStatusSql, new { OrderShortCode = orderShortCode, Status = status.ToString() });
+        var rowsAffected = await connection.ExecuteAsync(UpdateStatusSql, new { OrderShortCode = orderShortCode, Status = status.ToString() });
+        if (rowsAffected == 0)
+        {
+            throw new InvalidOperationException($"No order found with order_short_code: {orderShortCode}");
+        }
     }
 }
