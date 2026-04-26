@@ -7,5 +7,5 @@ if [ -z "$SERVICE" ]; then
   docker compose -f docker-compose.kafka.yml -f docker-compose.yml up -d
 else
   echo "Rebuilding service: $SERVICE"
-  docker compose -f docker-compose.kafka.yml -f docker-compose.yml up -d --build $SERVICE
+  docker compose -f docker-compose.kafka.yml -f docker-compose.yml up -d --build --force-recreate $SERVICE
 fi
