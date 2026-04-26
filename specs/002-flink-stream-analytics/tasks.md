@@ -17,9 +17,9 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create flink-analytics/ project directory structure per plan.md
-- [ ] T002 Initialize pom.xml with Flink 1.18, Kafka Connector, and Avro dependencies
-- [ ] T003 [P] Configure Maven build with shade plugin for fat JAR
+- [X] T001 Create flink-analytics/ project directory structure per plan.md
+- [X] T002 Initialize pom.xml with Flink 1.18, Kafka Connector, and Avro dependencies
+- [X] T003 [P] Configure Maven build with shade plugin for fat JAR
 
 ---
 
@@ -29,12 +29,12 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 Configure Kafka source for consuming from order.placed topic
-- [ ] T005 [P] Configure Avro deserialization using Schema Registry
-- [ ] T006 Configure Kafka sink for producing to order.analytics topic
-- [ ] T007 [P] Create WindowedMetric Avro schema in src/main/avro/
-- [ ] T008 Setup Flink StreamExecutionEnvironment configuration
-- [ ] T009 Implement mainAnalyticsJob.java entry point
+- [X] T004 Configure Kafka source for consuming from order.placed topic
+- [X] T005 [P] Configure Avro deserialization using Schema Registry
+- [X] T006 Configure Kafka sink for producing to order.analytics topic
+- [X] T007 [P] Create WindowedMetric Avro schema in src/main/avro/
+- [X] T008 Setup Flink StreamExecutionEnvironment configuration
+- [X] T009 Implement mainAnalyticsJob.java entry point
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
