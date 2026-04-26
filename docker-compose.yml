@@ -86,8 +86,12 @@ services:
   flink-jobmanager:
     image: flink:1.18
     container_name: flink-jobmanager
+    hostname: flink-jobmanager
     ports:
-      - "8083:8081"
+      - "8084:8081"
+    depends_on:
+      broker:
+        condition: service_started
     environment:
       - FLINK_ENV=java17
       - FLINK_PROPERTIES=jobmanager.rpc.address:flink-jobmanager
@@ -96,25 +100,39 @@ services:
     command: jobmanager
     networks:
       - kafkaesque
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/overview"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 120s
 
   flink-taskmanager:
     image: flink:1.18
     container_name: flink-taskmanager
+    hostname: flink-taskmanager
     depends_on:
-      - flink-jobmanager
+      flink-jobmanager:
+        condition: service_healthy
+      broker:
+        condition: service_started
     environment:
       - FLINK_ENV=java17
-      - FLINK_PROPERTIES=taskmanager.rpc.address:flink-taskmanager;jobmanager.rpc.address:flink-jobmanager
+    volumes:
+      - ./flink-conf/taskmanager.yaml:/opt/flink/conf/flink-conf.yaml:ro
     command: taskmanager
     networks:
       - kafkaesque
 
   flink-analytics:
+    build:
+      context: ./flink-analytics
+      dockerfile: Dockerfile
     image: flink-analytics:latest
     container_name: flink-analytics
     depends_on:
       flink-jobmanager:
-        condition: service_started
+        condition: service_healthy
       broker:
         condition: service_started
       schema-registry:
