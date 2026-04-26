@@ -1,0 +1,12 @@
+{
+  "type": "record",
+  "name": "OrderPlaced",
+  "namespace": "com.kafkaesque.analytics.model",
+  "fields": [
+    {"name": "orderId", "type": "string"},
+    {"name": "customerId", "type": "string"},
+    {"name": "timestamp", "type": "long"},
+    {"name": "total", "type": "string"},
+    {"name": "status", "type": "string"}
+  ]
+}

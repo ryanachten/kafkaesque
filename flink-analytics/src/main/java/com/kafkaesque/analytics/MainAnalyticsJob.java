@@ -7,11 +7,16 @@ import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
+import org.apache.flink.formats.avro.registry.confluent.ConfluentRegistryAvroDeserializationSchema;
+import org.apache.flink.formats.avro.registry.confluent.ConfluentRegistryAvroSerializationSchema;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.util.Collector;
 import org.apache.flink.api.java.utils.ParameterTool;
+
+import org.apache.flink.api.common.serialization.DeserializationSchema;
+import org.apache.flink.api.common.serialization.SerializationSchema;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -59,10 +64,16 @@ public class MainAnalyticsJob {
         ParameterTool params = ParameterTool.fromPropertiesFile("application.properties");
 
         String bootstrapServers = params.get("kafka.bootstrap.servers");
+        String schemaRegistryUrl = params.get("kafka.schema.registry.url");
         String sourceTopic = params.get("flink.source.topic");
         String sinkTopic = params.get("flink.sink.topic");
         String groupId = params.get("flink.source.group.id");
         long checkpointInterval = params.getLong("flink.checkpoint.interval", 60000L);
+
+        DeserializationSchema<OrderPlaced> orderPlacedDeserializer =
+            ConfluentRegistryAvroDeserializationSchema.forSpecific(OrderPlaced.class, schemaRegistryUrl);
+        SerializationSchema<WindowedMetric> windowedMetricSerializer =
+            ConfluentRegistryAvroSerializationSchema.forSpecific(WindowedMetric.class, sinkTopic, schemaRegistryUrl);
 
         // StreamExecutionEnvironment is Flink's runtime context
         // Similar to HostingEnvironment in ASP.NET Core - manages configuration,
@@ -81,7 +92,7 @@ public class MainAnalyticsJob {
                 .setTopics(sourceTopic)
                 .setGroupId(groupId)
                 .setStartingOffsets(OffsetsInitializer.earliest())
-                .setValueOnlyDeserializer(new OrderPlacedDeserializer())
+                .setValueOnlyDeserializer(orderPlacedDeserializer)
                 .build();
 
         // Read from Kafka with no watermarks for now (simpler)
@@ -99,7 +110,7 @@ public class MainAnalyticsJob {
                 .setBootstrapServers(bootstrapServers)
                 .setRecordSerializer(KafkaRecordSerializationSchema.builder()
                         .setTopic(sinkTopic)
-                        .setValueSerializationSchema(new WindowedMetricSerializer())
+                        .setValueSerializationSchema(windowedMetricSerializer)
                         .build())
                 .build();
 
@@ -153,7 +164,7 @@ public class MainAnalyticsJob {
                 BigDecimal total = BigDecimal.ZERO;
                 for (OrderPlaced o : ordersBuffer) {
                     if (o.getTotal() != null) {
-                        total = total.add(o.getTotal());
+                        total = total.add(new BigDecimal(o.getTotal().toString()));
                     }
                 }
 
@@ -168,8 +179,8 @@ public class MainAnalyticsJob {
                         now, // window end (now)
                         "1m", // window size identifier
                         count, // order count
-                        total, // total revenue
-                        avg, // average order value
+                        total.toPlainString(), // total revenue
+                        avg.toPlainString(), // average order value
                         now // processed timestamp
                 );
 
