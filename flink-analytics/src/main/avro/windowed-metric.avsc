@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "WindowedMetric",
-  "namespace": "Schemas",
+  "namespace": "com.kafkaesque.analytics.model",
   "fields": [
     {
       "name": "windowStart",
@@ -25,12 +25,12 @@
     },
     {
       "name": "totalRevenue",
-      "type": {"type": "bytes", "logicalType": "decimal", "precision": 10, "scale": 2},
+      "type": "string",
       "doc": "Sum of all order totals in this window"
     },
     {
       "name": "avgOrderValue",
-      "type": {"type": "bytes", "logicalType": "decimal", "precision": 10, "scale": 2},
+      "type": "string",
       "doc": "Average order value in this window"
     },
     {
