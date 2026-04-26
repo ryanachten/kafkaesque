@@ -83,5 +83,52 @@ services:
       schema-register:
         condition: service_completed_successfully
 
+  flink-jobmanager:
+    image: flink:1.18
+    container_name: flink-jobmanager
+    ports:
+      - "8083:8081"
+    environment:
+      - FLINK_ENV=java17
+      - FLINK_PROPERTIES=jobmanager.rpc.address:flink-jobmanager
+    volumes:
+      - flink-jobmanager-job-artifacts:/opt/flink/artifacts
+    command: jobmanager
+    networks:
+      - kafkaesque
+
+  flink-taskmanager:
+    image: flink:1.18
+    container_name: flink-taskmanager
+    depends_on:
+      - flink-jobmanager
+    environment:
+      - FLINK_ENV=java17
+      - FLINK_PROPERTIES=taskmanager.rpc.address:flink-taskmanager;jobmanager.rpc.address:flink-jobmanager
+    command: taskmanager
+    networks:
+      - kafkaesque
+
+  flink-analytics:
+    image: flink-analytics:latest
+    container_name: flink-analytics
+    depends_on:
+      flink-jobmanager:
+        condition: service_started
+      broker:
+        condition: service_started
+      schema-registry:
+        condition: service_started
+    environment:
+      - BOOTSTRAP_SERVERS=broker:29092
+      - SCHEMA_REGISTRY_URL=http://schema-registry:8081
+    networks:
+      - kafkaesque
+
 volumes:
   postgres-data:
+  flink-jobmanager-job-artifacts:
+
+networks:
+  kafkaesque:
+    driver: bridge

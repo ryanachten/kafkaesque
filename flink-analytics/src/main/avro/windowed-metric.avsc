@@ -1,0 +1,42 @@
+{
+  "type": "record",
+  "name": "WindowedMetric",
+  "namespace": "Schemas",
+  "fields": [
+    {
+      "name": "windowStart",
+      "type": "long",
+      "doc": "Unix timestamp in milliseconds - start of time window"
+    },
+    {
+      "name": "windowEnd",
+      "type": "long",
+      "doc": "Unix timestamp in milliseconds - end of time window"
+    },
+    {
+      "name": "windowSize",
+      "type": "string",
+      "doc": "Duration of window: 1m, 1h, or 24h"
+    },
+    {
+      "name": "orderCount",
+      "type": "long",
+      "doc": "Number of orders in this window"
+    },
+    {
+      "name": "totalRevenue",
+      "type": {"type": "bytes", "logicalType": "decimal", "precision": 10, "scale": 2},
+      "doc": "Sum of all order totals in this window"
+    },
+    {
+      "name": "avgOrderValue",
+      "type": {"type": "bytes", "logicalType": "decimal", "precision": 10, "scale": 2},
+      "doc": "Average order value in this window"
+    },
+    {
+      "name": "processedAt",
+      "type": "long",
+      "doc": "Unix timestamp in milliseconds when metric was generated"
+    }
+  ]
+}
