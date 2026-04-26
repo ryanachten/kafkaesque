@@ -79,7 +79,9 @@ graph LR
 
 ### Prerequisites
 - Docker and Docker Compose
-- .NET (with tools installed via `dotnet tool restore`)
+- .NET 9 (with tools installed via `dotnet tool restore`)
+- Java 17
+- Maven 3.9+
 
 ### Running services
 - Run the following bash script to start up the infrastructure:
@@ -90,6 +92,13 @@ graph LR
    ```bash
    ./run.sh order-service # fulfillment-service, schema-register, topic-register etc
    ```
+
+### Build Flink Pipeline
+```bash
+cd flink-analytics
+mvn clean package
+mvn exec:java -Dexec.mainClass="com.kafkaesque.analytics.MainAnalyticsJob"
+```
 
 ### Managing topics
 Topics are automatically created on startup via the `topic-register` service, which reads from [kafka-topics.yml](Schemas/kafka-topics.yml).
