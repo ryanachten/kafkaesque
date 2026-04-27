@@ -1,6 +1,6 @@
 package com.kafkaesque.analytics;
 
-import com.kafkaesque.analytics.model.OrderPlaced;
+import Schemas.OrderPlaced;
 import com.kafkaesque.analytics.model.WindowedMetric;
 
 import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
@@ -91,7 +91,7 @@ public class MainAnalyticsJob {
                 .setBootstrapServers(bootstrapServers)
                 .setTopics(sourceTopic)
                 .setGroupId(groupId)
-                .setStartingOffsets(OffsetsInitializer.earliest())
+                .setStartingOffsets(OffsetsInitializer.latest())
                 .setValueOnlyDeserializer(orderPlacedDeserializer)
                 .build();
 
@@ -154,17 +154,14 @@ public class MainAnalyticsJob {
         public void processElement(OrderPlaced order, Context ctx, Collector<WindowedMetric> out) throws Exception {
             ordersBuffer.add(order);
 
-            // Log receipt (in production, use proper logging)
-            System.out.println("Received order: " + order.getOrderId());
+            System.out.println("Received order: " + order.getOrderShortCode());
 
-            // For demonstration - emit metrics every 10 orders
-            // In production, use time-windowed tumbling windows with KeyedProcessFunction
             if (ordersBuffer.size() % 10 == 0) {
                 long count = ordersBuffer.size();
                 BigDecimal total = BigDecimal.ZERO;
                 for (OrderPlaced o : ordersBuffer) {
-                    if (o.getTotal() != null) {
-                        total = total.add(new BigDecimal(o.getTotal().toString()));
+                    if (o.getItems() != null) {
+                        total = total.add(BigDecimal.ONE.multiply(BigDecimal.valueOf(o.getItems().size())));
                     }
                 }
 
