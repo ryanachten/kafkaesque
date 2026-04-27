@@ -124,12 +124,12 @@ services:
     networks:
       - kafkaesque
 
-  flink-analytics:
+  flink-job-submitter:
     build:
-      context: ./flink-analytics
+      context: ./flink-job-submitter
       dockerfile: Dockerfile
-    image: flink-analytics:latest
-    container_name: flink-analytics
+    image: flink-job-submitter:latest
+    container_name: flink-job-submitter
     depends_on:
       flink-jobmanager:
         condition: service_healthy

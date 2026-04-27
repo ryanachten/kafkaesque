@@ -75,6 +75,27 @@ graph LR
   - **Schema Generator**: Generates C# classes from Avro schema definitions
 
 
+## Flink Stream Analytics
+
+Real-time event processing using Apache Flink. See [flink-job-submitter/README.md](flink-job-submitter/README.md) for full documentation.
+
+### Components
+- **flink-jobmanager**: Coordinates job execution, checkpointing, provides Web UI
+- **flink-taskmanager**: Executes stream processing operators
+- **flink-job-submitter**: Generic job submitter (short-lived container that exits after submission)
+
+### Building
+```bash
+cd flink-job-submitter
+mvn clean package
+```
+
+### Running
+```bash
+docker-compose up -d flink-job-submitter
+```
+
+
 ## Getting Started
 
 ### Prerequisites
@@ -95,9 +116,8 @@ graph LR
 
 ### Build Flink Pipeline
 ```bash
-cd flink-analytics
+cd flink-job-submitter
 mvn clean package
-mvn exec:java -Dexec.mainClass="com.kafkaesque.analytics.MainAnalyticsJob"
 ```
 
 ### Managing topics
