@@ -17,7 +17,7 @@
 {
   "type": "record",
   "name": "WindowedMetric",
-  "namespace": "Schemas",
+  "namespace": "com.kafkaesque.analytics.model",
   "fields": [
     {
       "name": "windowStart",
@@ -41,12 +41,12 @@
     },
     {
       "name": "totalRevenue",
-      "type": {"type": "bytes", "logicalType": "decimal", "precision": 10, "scale": 2},
+      "type": "string",
       "doc": "Sum of all order totals in this window"
     },
     {
       "name": "avgOrderValue",
-      "type": {"type": "bytes", "logicalType": "decimal", "precision": 10, "scale": 2},
+      "type": "string",
       "doc": "Average order value in this window"
     },
     {
@@ -58,7 +58,7 @@
 }
 ```
 
-**Note**: Events are emitted once per window when the window fires. No metadata headers required - all information is in the event body.
+**Note**: Using `string` type for monetary values (simplified from decimal for Confluent Avro compatibility). Events are emitted once per window when the window fires. No metadata headers required - all information is in the event body.
 
 ## Publisher Contract (Flink Analytics Job)
 
