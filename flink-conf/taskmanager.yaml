@@ -1,4 +1,4 @@
-jobmanager.rpc.address: flink-jobmanager
-taskmanager.rpc.address: flink-taskmanager
+jobmanager.rpc.address: flink-job-manager
+taskmanager.rpc.address: flink-task-manager
 taskmanager.memory.process.size: 1728m
 taskmanager.numberOfTaskSlots: 4

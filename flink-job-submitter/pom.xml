@@ -176,9 +176,6 @@
                                     <exclude>org.apache.flink:flink-statebackend-rocksdb</exclude>
                                     <exclude>org.apache.flink:flink-rpc-akka-loader</exclude>
                                     <exclude>org.apache.flink:flink-shaded-zookeeper-3</exclude>
-                                    <exclude>org.apache.kafka:*</exclude>
-                                    <exclude>org.apache.avro:*</exclude>
-                                    <exclude>io.confluent:*</exclude>
                                     <exclude>org.slf4j:*</exclude>
                                 </excludes>
                             </artifactSet>

@@ -10,6 +10,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    networks:
+      - kafkaesque
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -28,6 +30,8 @@ services:
       broker:
         condition: service_started
     restart: "no"
+    networks:
+      - kafkaesque
 
   schema-register:
     container_name: schema-register
@@ -44,6 +48,8 @@ services:
       schema-registry:
         condition: service_started
     restart: "no"
+    networks:
+      - kafkaesque
 
   fulfillment-service:
     container_name: fulfillment-service
@@ -59,6 +65,8 @@ services:
       - GROUP_ID=test-1
     ports:
       - "5054:8080"
+    networks:
+      - kafkaesque
     depends_on:
       schema-register:
         condition: service_completed_successfully
@@ -77,16 +85,18 @@ services:
       - ConnectionStrings__OrdersDatabase=Host=postgres;Port=5432;Database=orders;Username=postgres;Password=postgres
     ports:
       - "5295:8080"
+    networks:
+      - kafkaesque
     depends_on:
       postgres:
         condition: service_healthy
       schema-register:
         condition: service_completed_successfully
 
-  flink-jobmanager:
+  flink-job-manager:
     image: flink:1.18-java17
-    container_name: flink-jobmanager
-    hostname: flink-jobmanager
+    container_name: flink-job-manager
+    hostname: flink-job-manager
     ports:
       - "8084:8081"
     depends_on:
@@ -94,7 +104,7 @@ services:
         condition: service_started
     environment:
       - FLINK_ENV=java17
-      - FLINK_PROPERTIES=jobmanager.rpc.address:flink-jobmanager
+      - FLINK_PROPERTIES=jobmanager.rpc.address:flink-job-manager
     command: jobmanager
     networks:
       - kafkaesque
@@ -105,12 +115,12 @@ services:
       retries: 30
       start_period: 120s
 
-  flink-taskmanager:
+  flink-task-manager:
     image: flink:1.18-java17
-    container_name: flink-taskmanager
-    hostname: flink-taskmanager
+    container_name: flink-task-manager
+    hostname: flink-task-manager
     depends_on:
-      flink-jobmanager:
+      flink-job-manager:
         condition: service_healthy
       broker:
         condition: service_started
@@ -131,7 +141,7 @@ services:
     image: flink-job-submitter:latest
     container_name: flink-job-submitter
     depends_on:
-      flink-jobmanager:
+      flink-job-manager:
         condition: service_healthy
       broker:
         condition: service_started
