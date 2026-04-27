@@ -5,6 +5,8 @@
   "fields": [
     {"name": "orderShortCode", "type": "string"},
     {"name": "customerId", "type": "string"},
+    {"name": "timestamp", "type": {"type": "long", "logicalType": "timestamp-millis"}, "doc": "When the order was placed (event time for windowing)"},
+    {"name": "total", "type": {"type": "double", "doc": "Order total amount"}, "doc": "Order total amount"},
     {
       "name": "items",
       "type": {
