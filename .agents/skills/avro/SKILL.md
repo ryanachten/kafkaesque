@@ -33,7 +33,7 @@ Example schema (`orders.placed.avsc`):
 Run the SchemaGenerator to create C# classes from the Avro schemas:
 
 ```bash
-cd SchemaGenerator
+cd ./Schemas/SchemaGenerator
 dotnet run
 ```
 

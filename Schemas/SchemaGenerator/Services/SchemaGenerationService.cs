@@ -6,7 +6,7 @@ namespace SchemaGenerator.Services;
 
 public class SchemaGenerationService : ISchemaGenerationService
 {
-    private const string SchemasPath = "../Avro";
+    private const string SchemasPath = "./Avro";
     private readonly ILogger<SchemaGenerationService> _logger;
     private readonly string _outputPath;
 
@@ -60,9 +60,15 @@ public class SchemaGenerationService : ISchemaGenerationService
         try
         {
             var solutionDir = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), ".."));
+            var avrogenPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                ".dotnet",
+                "tools",
+                "avrogen");
+            
             var processStartInfo = new ProcessStartInfo
             {
-                FileName = "avrogen",
+                FileName = avrogenPath,
                 Arguments = $"-s \"{schemaFilePath}\" \"{_outputPath}\"",
                 WorkingDirectory = solutionDir,
                 RedirectStandardOutput = true,

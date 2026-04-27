@@ -98,7 +98,8 @@ The JAR must be built locally before the Docker build. This approach ensures con
 
 ### Prerequisites
 - Docker and Docker Compose
-- .NET 9 (with tools installed via `dotnet tool restore`)
+- .NET 9
+- `apache.avro.tools` (install globally: `dotnet tool install apache.avro.tools -g`)
 - Java 17
 - Maven 3.9+
 
