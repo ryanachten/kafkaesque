@@ -84,7 +84,7 @@ services:
         condition: service_completed_successfully
 
   flink-jobmanager:
-    image: flink:1.18
+    image: flink:1.18-java17
     container_name: flink-jobmanager
     hostname: flink-jobmanager
     ports:
@@ -108,7 +108,7 @@ services:
       start_period: 120s
 
   flink-taskmanager:
-    image: flink:1.18
+    image: flink:1.18-java17
     container_name: flink-taskmanager
     hostname: flink-taskmanager
     depends_on:
@@ -137,9 +137,8 @@ services:
         condition: service_started
       schema-registry:
         condition: service_started
-    environment:
-      - BOOTSTRAP_SERVERS=broker:29092
-      - SCHEMA_REGISTRY_URL=http://schema-registry:8081
+    volumes:
+      - ./flink-conf/analytics.yaml:/opt/flink/conf/flink-conf.yaml:ro
     networks:
       - kafkaesque
 
@@ -149,4 +148,4 @@ volumes:
 
 networks:
   kafkaesque:
-    driver: bridge
+    name: kafkaesque
