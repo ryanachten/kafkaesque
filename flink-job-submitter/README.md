@@ -31,41 +31,19 @@ graph TB
 ## Container Roles
 
 ### flink-job-submitter
-- **Role**: Generic job submitter (run once, then exit)
+- **Role**: Job submitter (run once, then exit)
 - **Responsibilities**:
-  - Submits any Flink job JAR to the JobManager
-  - Uses `FLINK_JOB_JAR` build arg to specify which JAR
+  - Contains the Flink job JAR built by Maven
+  - On startup, runs `flink run` to submit the job to the JobManager
   - Container exits after submission (this is expected)
   - Actual processing happens on the Flink cluster
 - **Lifecycle**: Short-lived, analogous to a migration script
 
 ## Multi-Job Support
 
-This container can submit multiple different Flink jobs. Build with different JAR names:
+This container can submit multiple different Flink jobs by building different JARs. The `FLINK_JOB_JAR` build arg specifies the JAR filename.
 
-```bash
-# Build analytics job
-docker build --build-arg FLINK_JOB_JAR=flink-analytics.jar -t flink-job-submitter:analytics .
-
-# Build reporting job
-docker build --build-arg FLINK_JOB_JAR=flink-reporting.jar -t flink-job-submitter:reporting .
-```
-
-Or reference in docker-compose with multiple services:
-
-```yaml
-flink-analytics-submitter:
-  build:
-    context: ./flink-job-submitter
-    args:
-      - FLINK_JOB_JAR=flink-analytics.jar
-
-flink-reporting-submitter:
-  build:
-    context: ./flink-job-submitter
-    args:
-      - FLINK_JOB_JAR=flink-reporting.jar
-```
+**Note**: Each job requires its own module with a `pom.xml` and source code. This directory contains the `flink-job-submitter` module which builds `flink-job-submitter-1.0.0-SNAPSHOT.jar`.
 
 ## Processing Pipeline
 
@@ -112,23 +90,36 @@ Flink uses checkpointing for exactly-once processing:
 ## Running Locally
 
 ### Build
+
+The Docker build requires the JAR to be built locally first. This approach ensures consistent, reproducible builds without relying on external build environments within the container.
+
 ```bash
 cd flink-job-submitter
-mvn clean package
+mvn clean package -DskipTests
 ```
 
 ### Run Job (via Docker)
+
 ```bash
-docker-compose up -d flink-job-submitter
-# Watch logs:
-docker logs -f flink-job-submitter
+# From repository root
+./run.sh flink-job-submitter
+
+# Or via docker-compose directly
+docker-compose up -d --build flink-job-submitter
 ```
 
 ### Build Specific Job
+
 ```bash
-# Build analytics job (default)
-docker build --build-arg FLINK_JOB_JAR=flink-analytics.jar -t flink-job-submitter:analytics ./flink-job-submitter
+mvn package -DskipTests
+./run.sh flink-job-submitter
 ```
+
+### Build Process
+
+1. **Maven builds the JAR**: `mvn package` creates the shaded JAR in `target/flink-job-submitter-1.0.0-SNAPSHOT.jar`
+2. **Docker copies the JAR**: The Dockerfile copies the pre-built JAR into the Flink base image
+3. **Container submits job**: On startup, the container runs `flink run` to submit the job and exits
 
 ## Monitoring
 
