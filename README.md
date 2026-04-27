@@ -114,12 +114,6 @@ docker-compose up -d flink-job-submitter
    ./run.sh order-service # fulfillment-service, schema-register, topic-register etc
    ```
 
-### Build Flink Pipeline
-```bash
-cd flink-job-submitter
-mvn clean package
-```
-
 ### Managing topics
 Topics are automatically created on startup via the `topic-register` service, which reads from [kafka-topics.yml](Schemas/kafka-topics.yml).
 

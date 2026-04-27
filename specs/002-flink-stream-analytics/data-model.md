@@ -35,7 +35,8 @@ Sink: emitted to Kafka topic `order.analytics`
 
 ## Validation Rules
 
-- Order ID must be non-null
-- Timestamp must be valid ISO-8601
-- Total must be >= 0
+- orderShortCode must be non-null
+- customerId must be non-null
+- items must be a non-empty array
+- items[].count must be > 0
 - Window boundaries must align to minute/hour/day boundaries

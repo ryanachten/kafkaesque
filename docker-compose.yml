@@ -95,8 +95,6 @@ services:
     environment:
       - FLINK_ENV=java17
       - FLINK_PROPERTIES=jobmanager.rpc.address:flink-jobmanager
-    volumes:
-      - flink-jobmanager-job-artifacts:/opt/flink/artifacts
     command: jobmanager
     networks:
       - kafkaesque
@@ -115,6 +113,8 @@ services:
       flink-jobmanager:
         condition: service_healthy
       broker:
+        condition: service_started
+      schema-registry:
         condition: service_started
     environment:
       - FLINK_ENV=java17
@@ -138,13 +138,12 @@ services:
       schema-registry:
         condition: service_started
     volumes:
-      - ./flink-conf/analytics.yaml:/opt/flink/conf/flink-conf.yaml:ro
+      - ./flink-conf/jobmanager.yaml:/opt/flink/conf/flink-conf.yaml:ro
     networks:
       - kafkaesque
 
 volumes:
   postgres-data:
-  flink-jobmanager-job-artifacts:
 
 networks:
   kafkaesque:

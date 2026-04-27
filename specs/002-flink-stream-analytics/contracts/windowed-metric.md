@@ -6,7 +6,7 @@
 |--------|--------|
 | Event Name | WindowedMetric |
 | Topic | order.analytics |
-| Schema Registry | Schemas.WindowedMetric |
+| Schema Registry | order.analytics-value |
 | Publisher | Flink Analytics Job |
 | Subscriber | Visualization/Dashboard services |
 | Delivery Semantics | At-least-once |
@@ -105,9 +105,9 @@
 
 ## Event Flow
 
-```
+```text
 ┌─────────────────────┐     order.placed      ┌─────────────────────┐
-│  OrderService      │ ──────────���───────────► │  Flink Analytics   │
+│  OrderService      │ ────────────────────► │  Flink Analytics   │
 │                     │        (source)       │      Job           │
 └─────────────────────┘                      │                    │
                                               │ 1. Consume events │
