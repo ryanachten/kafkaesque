@@ -9,20 +9,22 @@ public class SchemaGenerationService : ISchemaGenerationService
     private const string SchemasPath = "./Avro";
     private readonly ILogger<SchemaGenerationService> _logger;
     private readonly string _outputPath;
+    private readonly string _projectDir;
 
     public SchemaGenerationService(
         ILogger<SchemaGenerationService> logger)
     {
         _logger = logger;
+        _projectDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
 
         // Output to Schemas/Generated/ directory (parent project)
-        var solutionDir = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), ".."));
+        var solutionDir = Path.GetFullPath(Path.Combine(_projectDir, ".."));
         _outputPath = Path.Combine(solutionDir, "Generated");
     }
 
     public async Task GenerateCodeFromSchemas(CancellationToken cancellationToken = default)
     {
-        var schemasPath = Path.Combine(Directory.GetCurrentDirectory(), SchemasPath);
+        var schemasPath = Path.Combine(_projectDir, SchemasPath);
 
         if (!Directory.Exists(schemasPath))
         {
@@ -59,7 +61,7 @@ public class SchemaGenerationService : ISchemaGenerationService
 
         try
         {
-            var solutionDir = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), ".."));
+            var solutionDir = Path.GetFullPath(Path.Combine(_projectDir, ".."));
             var avrogenPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
                 ".dotnet",
