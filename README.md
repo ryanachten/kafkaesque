@@ -87,10 +87,8 @@ Real-time event processing using Apache Flink. See [flink-job-submitter/README.m
 ### Building
 ```bash
 # Build the JAR first (one-time, creates target/flink-job-submitter-1.0.0-SNAPSHOT.jar)
-cd flink-job-submitter && mvn package -DskipTests
-
 # Then build the Docker container (copies the pre-built JAR)
-cd .. && ./run.sh flink-job-submitter
+mvn clean package -f ./flink-job-submitter/pom.xml && ./run.sh flink-job-submitter
 ```
 
 The JAR must be built locally before the Docker build. This approach ensures consistent, reproducible builds without Maven dependency downloads inside the container.
