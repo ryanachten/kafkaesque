@@ -78,7 +78,7 @@ As a system operator, I want the analytics to account for events that arrive sli
 ### Key Entities
 
 - **Order Event**: Contains order ID, timestamp, customer ID, order total, and status
-- **Windowed Metric**: Contains window start time, window end time, order count, total revenue, and average order value
+- **Windowed Metric**: Contains window start time, window end time, window size, order count, total revenue, and average order value (stored as strings for Confluent Avro compatibility)
 - **Watermark**: Logical timestamp indicating the minimum event time for completeness
 
 ## Success Criteria *(mandatory)*
