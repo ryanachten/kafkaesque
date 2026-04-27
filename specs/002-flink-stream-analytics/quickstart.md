@@ -19,15 +19,15 @@ This starts Kafka, Schema Registry, and adds the Flink service.
 ### 2. Build the Flink Job
 
 ```bash
-cd flink-analytics
+cd flink-job-submitter
 mvn clean package
 ```
 
 ### 3. Submit to Flink
 
 ```bash
-docker-compose exec jobmanager flink run -c com.kafkaesque.analytics.AnalyticsJob \
-  /analytics/target/analytics-job-1.0.jar
+docker-compose exec flink-jobmanager flink run \
+  /opt/flink-jobs/flink-analytics.jar
 ```
 
 ### 4. Verify Output
@@ -35,7 +35,7 @@ docker-compose exec jobmanager flink run -c com.kafkaesque.analytics.AnalyticsJo
 Consume from the output topic to see metrics:
 
 ```bash
-docker-compose exec kafka kafka-console-consumer \
+docker-compose exec broker kafka-console-consumer \
   --topic order.analytics \
   --from-beginning \
   --bootstrap-server localhost:9092
@@ -47,19 +47,19 @@ Each minute, you should see metrics like:
 
 ```json
 {
-  "windowStart": "2026-04-26T10:00:00Z",
-  "windowEnd": "2026-04-26T10:01:00Z",
+  "windowStart": 1745736000000,
+  "windowEnd": 1745736060000,
   "windowSize": "1m",
   "orderCount": 42,
-  "totalRevenue": 1234.56,
-  "avgOrderValue": 29.39,
-  "processedAt": "2026-04-26T10:01:05Z"
+  "totalRevenue": "1234.56",
+  "avgOrderValue": "29.39",
+  "processedAt": 1745736065000
 }
 ```
 
 ## Stopping the Job
 
 ```bash
-docker-compose exec jobmanager flink list
-docker-compose exec jobmanager flink cancel <job-id>
+docker-compose exec flink-jobmanager flink list
+docker-compose exec flink-jobmanager flink cancel <job-id>
 ```

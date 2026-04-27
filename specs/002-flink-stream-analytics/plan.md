@@ -70,7 +70,7 @@ flink-job-submitter/              # Renamed from flink-analytics for multi-job s
 └── README.md                          # Architecture docs
 
 flink-conf/                           # Flink cluster configuration
-├── analytics.yaml                     # JobManager config
+├── jobmanager.yaml                   # JobManager config (rest.address/port for flink run)
 └── taskmanager.yaml                   # TaskManager config (4 slots)
 
 docker-compose.yml                    # Flink cluster services
@@ -147,7 +147,7 @@ Research completed in [research.md](./research.md)
 | `flink-job-submitter/src/main/resources/application.properties` | Configuration |
 | `flink-job-submitter/Dockerfile` | Multi-job submitter image |
 | `flink-job-submitter/README.md` | Architecture documentation |
-| `flink-conf/analytics.yaml` | JobManager config |
+| `flink-conf/jobmanager.yaml` | JobManager config |
 | `flink-conf/taskmanager.yaml` | TaskManager config (4 slots) |
 | `docker-compose.yml` | Flink cluster (jobmanager, taskmanager, submitter) |
 

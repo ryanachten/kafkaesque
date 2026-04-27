@@ -5,12 +5,12 @@
   "fields": [
     {
       "name": "windowStart",
-      "type": "long",
+      "type": {"type": "long", "logicalType": "timestamp-millis"},
       "doc": "Unix timestamp in milliseconds - start of time window"
     },
     {
       "name": "windowEnd",
-      "type": "long",
+      "type": {"type": "long", "logicalType": "timestamp-millis"},
       "doc": "Unix timestamp in milliseconds - end of time window"
     },
     {
@@ -35,7 +35,7 @@
     },
     {
       "name": "processedAt",
-      "type": "long",
+      "type": {"type": "long", "logicalType": "timestamp-millis"},
       "doc": "Unix timestamp in milliseconds when metric was generated"
     }
   ]
