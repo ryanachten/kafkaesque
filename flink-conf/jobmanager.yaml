@@ -1,3 +1,3 @@
-jobmanager.rpc.address: flink-jobmanager
-rest.address: flink-jobmanager
+jobmanager.rpc.address: flink-job-manager
+rest.address: flink-job-manager
 rest.port: 8081

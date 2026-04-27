@@ -8,8 +8,8 @@ Generic container for submitting Flink jobs to the cluster. Supports multiple jo
 graph TB
     subgraph Docker["Docker Compose Stack"]
         subgraph Flink["Flink Cluster"]
-            JM[flink-jobmanager<br/>Job Coordinator<br/>:8081]
-            TM[flink-taskmanager<br/>Processing<br/>Executor]
+            JM[flink-job-manager<br/>Job Coordinator<br/>:8081]
+            TM[flink-task-manager<br/>Processing<br/>Executor]
             FA[flink-job-submitter<br/>Job Submitter<br/>Runs & Exits]
             
             FA -->|"flink run -d"| JM
@@ -135,7 +135,7 @@ docker build --build-arg FLINK_JOB_JAR=flink-analytics.jar -t flink-job-submitte
 - **Flink Web UI**: http://localhost:8084
   - Job status, metrics, checkpoints
 - **Kafka topics**: http://localhost:9021 (Kafka Control Center)
-- **Container logs**: `docker logs flink-taskmanager`
+- **Container logs**: `docker logs flink-task-manager`
 
 ## Configuration
 

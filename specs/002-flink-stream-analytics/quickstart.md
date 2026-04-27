@@ -26,7 +26,7 @@ mvn clean package
 ### 3. Submit to Flink
 
 ```bash
-docker-compose exec flink-jobmanager flink run \
+docker-compose exec flink-job-manager flink run \
   /opt/flink-jobs/flink-analytics.jar
 ```
 
@@ -60,6 +60,6 @@ Each minute, you should see metrics like:
 ## Stopping the Job
 
 ```bash
-docker-compose exec flink-jobmanager flink list
-docker-compose exec flink-jobmanager flink cancel <job-id>
+docker-compose exec flink-job-manager flink list
+docker-compose exec flink-job-manager flink cancel <job-id>
 ```

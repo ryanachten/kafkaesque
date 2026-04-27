@@ -80,8 +80,8 @@ graph LR
 Real-time event processing using Apache Flink. See [flink-job-submitter/README.md](flink-job-submitter/README.md) for full documentation.
 
 ### Components
-- **flink-jobmanager**: Coordinates job execution, checkpointing, provides Web UI
-- **flink-taskmanager**: Executes stream processing operators
+- **flink-job-manager**: Coordinates job execution, checkpointing, provides Web UI
+- **flink-task-manager**: Executes stream processing operators
 - **flink-job-submitter**: Generic job submitter (short-lived container that exits after submission)
 
 ### Building
