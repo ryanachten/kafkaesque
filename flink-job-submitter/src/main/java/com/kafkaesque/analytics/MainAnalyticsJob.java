@@ -1,6 +1,7 @@
 package com.kafkaesque.analytics;
 
 import Schemas.OrderPlaced;
+import org.apache.avro.Schema;
 import com.kafkaesque.analytics.model.WindowedMetric;
 import com.kafkaesque.analytics.functions.OrderTimestampExtractor;
 import com.kafkaesque.analytics.windows.TumblingWindow;
@@ -9,7 +10,7 @@ import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
-import org.apache.flink.formats.avro.registry.confluent.ConfluentRegistryAvroDeserializationSchema;
+import org.apache.flink.formats.avro.AvroDeserializationSchema;
 import org.apache.flink.formats.avro.registry.confluent.ConfluentRegistryAvroSerializationSchema;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -93,15 +94,21 @@ public class MainAnalyticsJob {
         System.out.println("Starting Flink Analytics Job...");
         System.out.println("Kafka Source: " + sourceTopic + ", Sink: " + sinkTopic);
         System.out.println("Window size: " + windowSizeLabel);
-
+        
+        System.out.println("OrderPlaced schema: " + OrderPlaced.getClassSchema());
+        
         /**
          * Configure Avro serialization/deserialization using Confluent Schema Registry.
          * This allows schema evolution without breaking consumers/producers.
          */
+        System.out.println("Creating deserializer...");
         DeserializationSchema<OrderPlaced> orderPlacedDeserializer =
-            ConfluentRegistryAvroDeserializationSchema.forSpecific(OrderPlaced.class, schemaRegistryUrl);
+            new ConfluentOrderPlacedDeserializer(schemaRegistryUrl);
+        System.out.println("Deserializer created: " + orderPlacedDeserializer);
+        System.out.println("Creating serializer...");
         SerializationSchema<WindowedMetric> windowedMetricSerializer =
-            ConfluentRegistryAvroSerializationSchema.forSpecific(WindowedMetric.class, sinkTopic, schemaRegistryUrl);
+            new ConfluentWindowedMetricSerializer(schemaRegistryUrl);
+        System.out.println("Serializer created: " + windowedMetricSerializer);
 
         /**
          * StreamExecutionEnvironment is Flink's runtime context.

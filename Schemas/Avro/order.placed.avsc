@@ -12,6 +12,12 @@
       "type": "string"
     },
     {
+      "name": "timestamp",
+      "type": {"type": "long", "logicalType": "timestamp-millis"},
+      "doc": "When the order was placed (event time for windowing)",
+      "default": 0
+    },
+    {
       "name": "items",
       "type": {
         "type": "array",

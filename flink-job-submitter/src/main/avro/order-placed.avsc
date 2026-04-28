@@ -3,10 +3,20 @@
   "name": "OrderPlaced",
   "namespace": "Schemas",
   "fields": [
-    {"name": "orderShortCode", "type": "string"},
-    {"name": "customerId", "type": "string"},
-    {"name": "timestamp", "type": {"type": "long", "logicalType": "timestamp-millis"}, "doc": "When the order was placed (event time for windowing)"},
-    {"name": "total", "type": {"type": "double", "doc": "Order total amount"}, "doc": "Order total amount"},
+    {
+      "name": "orderShortCode",
+      "type": "string"
+    },
+    {
+      "name": "customerId",
+      "type": "string"
+    },
+    {
+      "name": "timestamp",
+      "type": {"type": "long", "logicalType": "timestamp-millis"},
+      "doc": "When the order was placed (event time for windowing)",
+      "default": 0
+    },
     {
       "name": "items",
       "type": {
@@ -14,9 +24,16 @@
         "items": {
           "type": "record",
           "name": "OrderPlacedItem",
+          "namespace": "Schemas",
           "fields": [
-            {"name": "productId", "type": "string"},
-            {"name": "count", "type": "int"}
+            {
+              "name": "productId",
+              "type": "string"
+            },
+            {
+              "name": "count",
+              "type": "int"
+            }
           ]
         }
       }
