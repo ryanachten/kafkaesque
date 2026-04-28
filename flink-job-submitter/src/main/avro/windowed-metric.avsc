@@ -24,9 +24,9 @@
       "doc": "Number of orders in this window"
     },
     {
-      "name": "totalRevenue",
+      "name": "totalUnits",
       "type": "string",
-      "doc": "Sum of all order totals in this window"
+      "doc": "Sum of item quantities across all orders in this window"
     },
     {
       "name": "avgOrderValue",

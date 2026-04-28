@@ -42,14 +42,14 @@ public class TumblingWindow {
      *
      * Combines:
      * - orderCount: Simply adds the counts together
-     * - totalRevenue: Adds the revenue totals together
+     * - totalUnits: Adds the revenue totals together
      */
     public static class MetricReduceFunction implements ReduceFunction<WindowAggregateAccumulator> {
 
         @Override
         public WindowAggregateAccumulator reduce(WindowAggregateAccumulator acc1, WindowAggregateAccumulator acc2) {
             acc1.orderCount += acc2.orderCount;
-            acc1.totalRevenue = acc1.totalRevenue.add(acc2.totalRevenue);
+            acc1.totalUnits = acc1.totalUnits.add(acc2.totalUnits);
             return acc1;
         }
     }
@@ -93,7 +93,7 @@ public class TumblingWindow {
              * Rounds to 2 decimal places for currency.
              */
             BigDecimal avgOrderValue = acc.orderCount > 0
-                    ? acc.totalRevenue.divide(BigDecimal.valueOf(acc.orderCount), 2, RoundingMode.HALF_UP)
+                    ? acc.totalUnits.divide(BigDecimal.valueOf(acc.orderCount), 2, RoundingMode.HALF_UP)
                     : BigDecimal.ZERO;
 
             /**
@@ -105,7 +105,7 @@ public class TumblingWindow {
                     windowEnd,
                     windowSizeLabel,
                     acc.orderCount,
-                    acc.totalRevenue.toPlainString(),
+                    acc.totalUnits.toPlainString(),
                     avgOrderValue.toPlainString(),
                     processedAt
             );
@@ -115,7 +115,7 @@ public class TumblingWindow {
              * In production, use proper logging framework.
              */
             System.out.println("Window fired: " + windowSizeLabel + " window [" + windowStart + ", " + windowEnd + "] - count=" + acc.orderCount);
-            System.out.println("Emitting metric: orderCount=" + acc.orderCount + ", totalRevenue=" + acc.totalRevenue + ", avg=" + avgOrderValue);
+            System.out.println("Emitting metric: orderCount=" + acc.orderCount + ", totalUnits=" + acc.totalUnits + ", avg=" + avgOrderValue);
 
             out.collect(metric);
         }
@@ -129,7 +129,7 @@ public class TumblingWindow {
      */
     public static class WindowAggregateAccumulator {
         public long orderCount = 0;
-        public BigDecimal totalRevenue = BigDecimal.ZERO;
+        public BigDecimal totalUnits = BigDecimal.ZERO;
     }
 
     /**
@@ -151,7 +151,7 @@ public class TumblingWindow {
      *
      * Creates an accumulator with:
      * - orderCount: 1 (this order)
-     * - totalRevenue: Sum of item counts
+     * - totalUnits: Sum of item counts
      *
      * In a production system, this would use the order's total amount.
      * Here we use item counts as a proxy for order value.
@@ -169,7 +169,7 @@ public class TumblingWindow {
                 total = total.add(BigDecimal.valueOf(count));
             }
         }
-        acc.totalRevenue = total;
+        acc.totalUnits = total;
         return acc;
     }
 }
