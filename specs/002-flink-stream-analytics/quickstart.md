@@ -51,7 +51,7 @@ Each minute, you should see metrics like:
   "windowEnd": 1745736060000,
   "windowSize": "1m",
   "orderCount": 42,
-  "totalRevenue": "1234.56",
+  "totalUnits": "1234.56",
   "avgOrderValue": "29.39",
   "processedAt": 1745736065000
 }

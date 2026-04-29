@@ -5,12 +5,12 @@
   "fields": [
     {
       "name": "windowStart",
-      "type": {"type": "long", "logicalType": "timestamp-millis"},
+      "type": "long",
       "doc": "Unix timestamp in milliseconds - start of time window"
     },
     {
       "name": "windowEnd",
-      "type": {"type": "long", "logicalType": "timestamp-millis"},
+      "type": "long",
       "doc": "Unix timestamp in milliseconds - end of time window"
     },
     {
@@ -24,9 +24,9 @@
       "doc": "Number of orders in this window"
     },
     {
-      "name": "totalRevenue",
+      "name": "totalUnits",
       "type": "string",
-      "doc": "Sum of all order totals in this window"
+      "doc": "Sum of item quantities across all orders in this window"
     },
     {
       "name": "avgOrderValue",
@@ -35,7 +35,7 @@
     },
     {
       "name": "processedAt",
-      "type": {"type": "long", "logicalType": "timestamp-millis"},
+      "type": "long",
       "doc": "Unix timestamp in milliseconds when metric was generated"
     }
   ]

@@ -111,6 +111,19 @@
 
 ---
 
+## Future Work
+
+**Revenue Calculation**: The current `totalRevenue` field is actually summing item quantities (`totalUnits`). To calculate true revenue:
+
+- Add `unitPrice` field to `OrderPlacedItem` in the Avro schema
+- Join with Product service to get product prices
+- Calculate: `SUM(item.count * item.unitPrice)` for each order
+- Update `WindowedMetric` schema field name from `totalRevenue` to `totalUnits` (separate PR)
+
+**Note**: This is tracked separately as it requires coordination with Product/Order services.
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies

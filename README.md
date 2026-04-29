@@ -86,21 +86,20 @@ Real-time event processing using Apache Flink. See [flink-job-submitter/README.m
 
 ### Building
 ```bash
-cd flink-job-submitter
-mvn clean package
+# Build the JAR first (one-time, creates target/flink-job-submitter-1.0.0-SNAPSHOT.jar)
+# Then build the Docker container (copies the pre-built JAR)
+mvn clean package -f ./flink-job-submitter/pom.xml && ./run.sh flink-job-submitter
 ```
 
-### Running
-```bash
-docker-compose up -d flink-job-submitter
-```
+The JAR must be built locally before the Docker build. This approach ensures consistent, reproducible builds without Maven dependency downloads inside the container.
 
 
 ## Getting Started
 
 ### Prerequisites
 - Docker and Docker Compose
-- .NET 9 (with tools installed via `dotnet tool restore`)
+- .NET 9
+- `apache.avro.tools` (install globally: `dotnet tool install apache.avro.tools -g`)
 - Java 17
 - Maven 3.9+
 

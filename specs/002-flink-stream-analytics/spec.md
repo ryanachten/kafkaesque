@@ -68,7 +68,7 @@ As a system operator, I want the analytics to account for events that arrive sli
 
 - **FR-001**: System MUST consume order events from the `order.placed` Kafka topic
 - **FR-002**: System MUST calculate order count per 1-minute time window using event timestamp
-- **FR-003**: System MUST calculate total revenue per time window by summing order values
+- **FR-003**: System MUST calculate total units per time window by summing item quantities (placeholder for future revenue calculation)
 - **FR-004**: System MUST calculate average order value per time window
 - **FR-005**: System MUST emit aggregated metrics to a downstream sink (topic or data store)
 - **FR-006**: System MUST handle late-arriving events with configurable watermark tolerance
@@ -78,7 +78,7 @@ As a system operator, I want the analytics to account for events that arrive sli
 ### Key Entities
 
 - **Order Event**: Contains order ID, timestamp, customer ID, order total, and status
-- **Windowed Metric**: Contains window start time, window end time, window size, order count, total revenue, and average order value (stored as strings for Confluent Avro compatibility)
+- **Windowed Metric**: Contains window start time, window end time, window size, order count, total units, and average order value (stored as strings for Confluent Avro compatibility)
 - **Watermark**: Logical timestamp indicating the minimum event time for completeness
 
 ## Success Criteria *(mandatory)*

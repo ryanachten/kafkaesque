@@ -14,18 +14,19 @@ namespace Schemas
 	using global::Avro.Specific;
 	
 	[global::System.CodeDom.Compiler.GeneratedCodeAttribute("avrogen", "1.12.1+9110c693767c1dde2665b2b57939333478b12036")]
-	public partial class OrderPlaced : global::Avro.Specific.ISpecificRecord
+	public partial class OrderFulfilled : global::Avro.Specific.ISpecificRecord
 	{
-		public static global::Avro.Schema _SCHEMA = global::Avro.Schema.Parse(@"{{""type"":""record"",""name"":""OrderPlaced"",""namespace"":""Schemas"",""fields"":[{{""name"":""orderShortCode"",""type"":""string""}},{{""name"":""customerId"",""type"":""string""}},{{""name"":""timestamp"",""type"":{{""type"":""long"",""logicalType"":""timestamp-millis""}}}},{{""name"":""items"",""type"":{{""type"":""array"",""items"":{{""type"":""record"",""name"":""OrderPlacedItem"",""namespace"":""Schemas"",""fields"":[{{""name"":""productId"",""type"":""string""}},{{""name"":""count"",""type"":""int""}}]}}}}]}}");
+		public static global::Avro.Schema _SCHEMA = global::Avro.Schema.Parse("{\"type\":\"record\",\"name\":\"OrderFulfilled\",\"namespace\":\"Schemas\",\"fields\":[{\"name\":" +
+				"\"orderShortCode\",\"type\":\"string\"},{\"name\":\"customerId\",\"type\":\"string\"},{\"name\":" +
+				"\"fulfillmentTimestamp\",\"type\":\"long\"}]}");
 		private string _OrderShortCode;
 		private string _CustomerId;
-		private long _Timestamp;
-		private IList<Schemas.OrderPlacedItem> _Items;
+		private long _FulfillmentTimestamp;
 		public virtual global::Avro.Schema Schema
 		{
 			get
 			{
-				return OrderPlaced._SCHEMA;
+				return OrderFulfilled._SCHEMA;
 			}
 		}
 		public string OrderShortCode
@@ -50,26 +51,15 @@ namespace Schemas
 				this._CustomerId = value;
 			}
 		}
-		public long Timestamp
+		public long FulfillmentTimestamp
 		{
 			get
 			{
-				return this._Timestamp;
+				return this._FulfillmentTimestamp;
 			}
 			set
 			{
-				this._Timestamp = value;
-			}
-		}
-		public IList<Schemas.OrderPlacedItem> Items
-		{
-			get
-			{
-				return this._Items;
-			}
-			set
-			{
-				this._Items = value;
+				this._FulfillmentTimestamp = value;
 			}
 		}
 		public virtual object Get(int fieldPos)
@@ -78,8 +68,7 @@ namespace Schemas
 			{
 			case 0: return this.OrderShortCode;
 			case 1: return this.CustomerId;
-			case 2: return this.Timestamp;
-			case 3: return this.Items;
+			case 2: return this.FulfillmentTimestamp;
 			default: throw new global::Avro.AvroRuntimeException("Bad index " + fieldPos + " in Get()");
 			};
 		}
@@ -89,8 +78,7 @@ namespace Schemas
 			{
 			case 0: this.OrderShortCode = (System.String)fieldValue; break;
 			case 1: this.CustomerId = (System.String)fieldValue; break;
-			case 2: this._Timestamp = (System.Int64)fieldValue; break;
-			case 3: this.Items = (IList<Schemas.OrderPlacedItem>)fieldValue; break;
+			case 2: this.FulfillmentTimestamp = (System.Int64)fieldValue; break;
 			default: throw new global::Avro.AvroRuntimeException("Bad index " + fieldPos + " in Put()");
 			};
 		}

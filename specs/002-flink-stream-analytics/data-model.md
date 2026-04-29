@@ -23,7 +23,7 @@ Sink: emitted to Kafka topic `order.analytics`
 | windowEnd | Instant | End of the time window |
 | windowSize | String | Duration (1m, 1h, 24h) |
 | orderCount | Long | Number of orders in window |
-| totalRevenue | Decimal | Sum of all order totals |
+| totalUnits | Decimal | Sum of item quantities across all orders |
 | avgOrderValue | Decimal | Average order value |
 | processedAt | Instant | When the metric was generated |
 
