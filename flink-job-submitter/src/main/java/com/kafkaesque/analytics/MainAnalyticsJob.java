@@ -10,7 +10,7 @@ import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
-import org.apache.flink.formats.avro.AvroDeserializationSchema;
+import org.apache.flink.formats.avro.registry.confluent.ConfluentRegistryAvroDeserializationSchema;
 import org.apache.flink.formats.avro.registry.confluent.ConfluentRegistryAvroSerializationSchema;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -78,6 +78,7 @@ public class MainAnalyticsJob {
         String schemaRegistryUrl = params.get("kafka.schema.registry.url");
         String sourceTopic = params.get("flink.source.topic");
         String sinkTopic = params.get("flink.sink.topic");
+        String sinkSubject = params.get("flink.sink.subject", "order.analytics");
         String groupId = params.get("flink.source.group.id");
         long checkpointInterval = params.getLong("flink.checkpoint.interval", 60000L);
         long watermarkInterval = params.getLong("flink.watermark.interval", 1000L);
@@ -103,11 +104,11 @@ public class MainAnalyticsJob {
          */
         System.out.println("Creating deserializer...");
         DeserializationSchema<OrderPlaced> orderPlacedDeserializer =
-            new ConfluentOrderPlacedDeserializer(schemaRegistryUrl);
+            ConfluentRegistryAvroDeserializationSchema.forSpecific(OrderPlaced.class, schemaRegistryUrl);
         System.out.println("Deserializer created: " + orderPlacedDeserializer);
         System.out.println("Creating serializer...");
         SerializationSchema<WindowedMetric> windowedMetricSerializer =
-            new ConfluentWindowedMetricSerializer(schemaRegistryUrl);
+            ConfluentRegistryAvroSerializationSchema.forSpecific(WindowedMetric.class, sinkSubject, schemaRegistryUrl);
         System.out.println("Serializer created: " + windowedMetricSerializer);
 
         /**
@@ -236,11 +237,13 @@ public class MainAnalyticsJob {
      */
     private static String windowSizeMinutesToLabel(int windowSizeMinutes) {
         if (windowSizeMinutes >= 1440) {
-            return "24h";
+            int days = windowSizeMinutes / 1440;
+            return days + "d";
         } else if (windowSizeMinutes >= 60) {
-            return "1h";
+            int hours = windowSizeMinutes / 60;
+            return hours + "h";
         } else {
-            return "1m";
+            return windowSizeMinutes + "m";
         }
     }
 }

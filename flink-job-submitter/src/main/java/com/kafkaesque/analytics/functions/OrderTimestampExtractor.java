@@ -34,6 +34,10 @@ public class OrderTimestampExtractor implements SerializableTimestampAssigner<Or
     @Override
     public long extractTimestamp(OrderPlaced element, long recordTimestamp) {
         Instant ts = element.getTimestamp();
-        return ts != null ? ts.toEpochMilli() : recordTimestamp;
+        if (ts == null) {
+            return recordTimestamp;
+        }
+        long epoch = ts.toEpochMilli();
+        return epoch == 0 ? recordTimestamp : epoch;
     }
 }
